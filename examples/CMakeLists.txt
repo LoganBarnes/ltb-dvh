@@ -26,6 +26,7 @@ file(GLOB_RECURSE LTB_SOURCE_FILES
         ${CMAKE_CURRENT_LIST_DIR}/gui/*
         )
 
+### Optional CUDA ###
 if (CMAKE_CUDA_COMPILER)
     file(GLOB_RECURSE LTB_CUDA_SOURCE_FILES
             LIST_DIRECTORIES false
@@ -37,9 +38,9 @@ endif ()
 
 ltb_add_executable(ltb_dvh_example 17 ${CMAKE_CURRENT_LIST_DIR}/exec/main.cpp ${LTB_SOURCE_FILES})
 ltb_link_libraries(ltb_dvh_example
-        PRIVATE
+        PUBLIC
         ltb_gvs
         ltb_dvh
         doctest
         )
-target_include_directories(ltb_dvh_example PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>")
+ltb_include_directories(ltb_dvh_example PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>")

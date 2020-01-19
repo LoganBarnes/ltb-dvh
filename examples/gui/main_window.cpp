@@ -23,7 +23,9 @@
 #include "main_window.hpp"
 
 // project
+#include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
+#include "ltb/gvs/display/gui/scene_gui.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
@@ -41,13 +43,22 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
       gl_version_str_(GL::Context::current().versionString()),
       gl_renderer_str_(GL::Context::current().rendererString()),
-      error_alert_("DVH Errors") {}
+      error_alert_("DVH Errors") {
+
+    camera_package_.zoom_object.translate({0.f, 0.f, 20.f});
+
+    camera_package_.update_object();
+
+    scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
+}
 
 MainWindow::~MainWindow() = default;
 
 void MainWindow::update() {}
 
-void MainWindow::render(const gvs::CameraPackage& /*camera_package*/) const {}
+void MainWindow::render(const gvs::CameraPackage& camera_package) const {
+    scene_.render(camera_package);
+}
 
 void MainWindow::configure_gui() {
 
@@ -75,11 +86,15 @@ void MainWindow::configure_gui() {
 
     add_three_line_separator();
 
+    gvs::configure_gui(&scene_);
+
     ImGui::End();
 
     error_alert_.display_next_error();
 }
 
-void MainWindow::resize(const Vector2i& /*viewport*/) {}
+void MainWindow::resize(const Vector2i& viewport) {
+    scene_.resize(viewport);
+}
 
 } // namespace ltb::example
