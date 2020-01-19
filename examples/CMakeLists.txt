@@ -23,32 +23,23 @@
 file(GLOB_RECURSE LTB_SOURCE_FILES
         LIST_DIRECTORIES false
         CONFIGURE_DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/*.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/*.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/gui/*
         )
 
-add_executable(run_ltb_dvh_example ${LTB_SOURCE_FILES})
-target_link_libraries(run_ltb_dvh_example
+if (CMAKE_CUDA_COMPILER)
+    file(GLOB_RECURSE LTB_CUDA_SOURCE_FILES
+            LIST_DIRECTORIES false
+            CONFIGURE_DEPENDS
+            ${CMAKE_CURRENT_LIST_DIR}/cuda/*
+            )
+    list(APPEND LTB_SOURCE_FILES ${LTB_CUDA_SOURCE_FILES})
+endif ()
+
+ltb_add_executable(ltb_dvh_example 17 ${CMAKE_CURRENT_LIST_DIR}/exec/main.cpp ${LTB_SOURCE_FILES})
+ltb_link_libraries(ltb_dvh_example
         PRIVATE
         ltb_gvs
         ltb_dvh
+        doctest
         )
-
-target_compile_options(run_ltb_dvh_example PRIVATE ${LTB_COMPILE_FLAGS})
-set_target_properties(
-        run_ltb_dvh_example
-        PROPERTIES
-        # C++ flags
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF
-        POSITION_INDEPENDENT_CODE ON
-        # CUDA flags
-        CUDA_STANDARD 17
-        CUDA_STANDARD_REQUIRED ON
-        CUDA_EXTENSIONS OFF
-        # CCache
-        COMPILER_LAUNCHER "${LTB_CCACHE_PROGRAM}"
-        # Clang-Tidy
-        CXX_CLANG_TIDY "${LTB_CLANG_TIDY}"
-)
+target_include_directories(ltb_dvh_example PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>")

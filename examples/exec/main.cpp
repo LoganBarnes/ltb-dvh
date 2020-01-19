@@ -20,45 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "gui/main_window.hpp"
 
-// external
-#include <cuda_runtime.h>
-
-// standard
-#include <exception>
-#include <iostream>
-#include <sstream>
-#include <string>
-
-#define CUDA_CHECK(val) cuda::check((val), #val, __FILE__, __LINE__)
-
-namespace cuda {
-
-struct CudaError : public std::runtime_error {
-    using std::runtime_error::runtime_error;
-};
-
-struct OutOfMemoryCudaError : public CudaError {
-    using CudaError::CudaError;
-};
-
-template <typename T>
-void check(T result, char const* const func, const char* const file, int const line) {
-    if (result != cudaSuccess) {
-        std::stringstream error_str;
-        error_str << "CUDA error at " << file << ":" << line;
-        error_str << " code=" << static_cast<unsigned int>(result) << "(" << cudaGetErrorString(result) << ") ";
-        error_str << "\"" << func << "\"";
-
-        if (static_cast<unsigned int>(result) == 2) {
-            cudaGetLastError(); // reset error state to success
-            throw OutOfMemoryCudaError(error_str.str());
-        } else {
-            cudaDeviceReset();
-            throw CudaError(error_str.str());
-        }
-    }
+auto main(int argc, char* argv[]) -> int {
+    ltb::example::MainWindow app({argc, argv});
+    return app.exec();
 }
-
-} // namespace cuda

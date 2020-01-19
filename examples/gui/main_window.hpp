@@ -23,14 +23,15 @@
 #pragma once
 
 // project
+#include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
 
 namespace ltb::example {
 
-class BaraCUDA : public gvs::ImGuiMagnumApplication {
+class MainWindow : public gvs::ImGuiMagnumApplication {
 public:
-    explicit BaraCUDA(const Arguments& arguments);
-    ~BaraCUDA() override;
+    explicit MainWindow(const Arguments& arguments);
+    ~MainWindow() override;
 
 private:
     void update() override;
@@ -40,9 +41,11 @@ private:
     void resize(const Magnum::Vector2i& viewport) override;
 
     // General Info
-    std::string gl_version_str_{};
-    std::string gl_renderer_str_{};
-    std::string error_message_{};
+    std::string gl_version_str_;
+    std::string gl_renderer_str_;
+
+    // Errors
+    gvs::ErrorAlert error_alert_;
 };
 
 } // namespace ltb::example

@@ -20,18 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "scoped_gl_context.hpp"
+#pragma once
 
-using namespace Magnum::Platform;
+// external
+#include <Magnum/Platform/GLContext.h>
+#include <Magnum/Platform/WindowlessEglApplication.h>
 
+// standard
+#include <memory>
+
+namespace ltb {
 namespace testing {
 
-ScopedGLContext::ScopedGLContext() {
-    auto configuration = WindowlessGLContext::Configuration{};
-    configuration.clearFlags(WindowlessGLContext::Configuration::Flag::ForwardCompatible);
-    windowless_gl_context_ = std::make_shared<WindowlessGLContext>(configuration);
-    windowless_gl_context_->makeCurrent();
-    gl_context_ = std::make_shared<GLContext>(0, nullptr);
-}
+class ScopedGLContext {
+public:
+    ScopedGLContext();
+
+private:
+    std::shared_ptr<Magnum::Platform::WindowlessGLContext> windowless_gl_context_;
+    std::shared_ptr<Magnum::Platform::GLContext>           gl_context_;
+};
 
 } // namespace testing
+} // namespace ltb

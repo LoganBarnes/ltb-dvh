@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "bara_cuda.hpp"
+#include "main_window.hpp"
 
 // project
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
@@ -33,22 +33,23 @@ using namespace Magnum;
 
 namespace ltb::example {
 
-BaraCUDA::BaraCUDA(const Arguments& arguments)
+MainWindow::MainWindow(const Arguments& arguments)
     : gvs::ImGuiMagnumApplication(arguments,
                                   Configuration{}
                                       .setTitle("Distance Volume Hierarchy")
                                       .setSize({1280, 720})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
       gl_version_str_(GL::Context::current().versionString()),
-      gl_renderer_str_(GL::Context::current().rendererString()) {}
+      gl_renderer_str_(GL::Context::current().rendererString()),
+      error_alert_("DVH Errors") {}
 
-BaraCUDA::~BaraCUDA() = default;
+MainWindow::~MainWindow() = default;
 
-void BaraCUDA::update() {}
+void MainWindow::update() {}
 
-void BaraCUDA::render(const gvs::CameraPackage& /*camera_package*/) const {}
+void MainWindow::render(const gvs::CameraPackage& /*camera_package*/) const {}
 
-void BaraCUDA::configure_gui() {
+void MainWindow::configure_gui() {
 
     auto add_three_line_separator = [] {
         ImGui::Spacing();
@@ -58,7 +59,6 @@ void BaraCUDA::configure_gui() {
         ImGui::Spacing();
     };
 
-    auto width  = static_cast<float>(this->windowSize().x());
     auto height = static_cast<float>(this->windowSize().y());
 
     ImGui::SetNextWindowPos({0.f, 0.f});
@@ -77,25 +77,9 @@ void BaraCUDA::configure_gui() {
 
     ImGui::End();
 
-    if (not error_message_.empty()) {
-        ImGui::SetNextWindowPos({width * 0.5f, 0.f}, 0, {0.5f, 0.f});
-
-        bool open = true;
-        ImGui::Begin("Errors", &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
-        ImGui::TextColored({1.f, 0.f, 0.f, 1.f}, "%s", error_message_.c_str());
-        ImGui::End();
-
-        if (not open) {
-            error_message_ = "";
-        }
-    }
+    error_alert_.display_next_error();
 }
 
-void BaraCUDA::resize(const Vector2i& /*viewport*/) {}
+void MainWindow::resize(const Vector2i& /*viewport*/) {}
 
 } // namespace ltb::example
-
-auto main(int argc, char* argv[]) -> int {
-    ltb::example::BaraCUDA app({argc, argv});
-    return app.exec();
-}

@@ -23,7 +23,7 @@
 #pragma once
 
 // project
-#include "ltb/dvh/cuda_check.hpp"
+#include "ltb/cuda/cuda_check.hpp"
 
 // external
 #include <Corrade/Containers/ArrayViewStl.h>
@@ -34,38 +34,38 @@
 // standard
 #include <vector>
 
+namespace ltb {
 namespace cuda {
-namespace interop {
 
 /// @brief Maps an allocated OpenGL buffer for use with CUDA
 template <typename T>
 class GLBuffer {
 public:
-    explicit GLBuffer(const std::vector<T>& initial_data,
-                      Magnum::GL::Buffer::TargetHint type = Magnum::GL::Buffer::TargetHint::Array,
-                      Magnum::GL::BufferUsage usage = Magnum::GL::BufferUsage::DynamicDraw);
+    explicit GLBuffer(const std::vector<T>&          initial_data,
+                      Magnum::GL::Buffer::TargetHint type  = Magnum::GL::Buffer::TargetHint::Array,
+                      Magnum::GL::BufferUsage        usage = Magnum::GL::BufferUsage::DynamicDraw);
     ~GLBuffer();
 
     void map_for_cuda();
     void unmap_from_cuda();
 
-    T* cuda_buffer(std::size_t* size) const;
+    T*                        cuda_buffer(std::size_t* size) const;
     const Magnum::GL::Buffer& gl_buffer() const;
 
     const std::size_t& size() const;
-    bool empty() const;
+    bool               empty() const;
 
 private:
-    Magnum::GL::Buffer gl_buffer_;
-    std::size_t size_ = 0;
+    Magnum::GL::Buffer     gl_buffer_;
+    std::size_t            size_              = 0;
     cudaGraphicsResource_t graphics_resource_ = nullptr;
-    bool mapped_for_cuda_ = false;
+    bool                   mapped_for_cuda_   = false;
 };
 
 template <typename T>
-GLBuffer<T>::GLBuffer(const std::vector<T>& initial_data,
+GLBuffer<T>::GLBuffer(const std::vector<T>&          initial_data,
                       Magnum::GL::Buffer::TargetHint gl_type,
-                      Magnum::GL::BufferUsage gl_usage)
+                      Magnum::GL::BufferUsage        gl_usage)
     : gl_buffer_(gl_type), size_(initial_data.size()) {
     gl_buffer_.setData(initial_data, gl_usage);
 
@@ -98,7 +98,7 @@ void GLBuffer<T>::unmap_from_cuda() {
 
 template <typename T>
 T* GLBuffer<T>::cuda_buffer(std::size_t* size) const {
-    T* devPtr = nullptr;
+    T*          devPtr    = nullptr;
     std::size_t byte_size = 0;
     CUDA_CHECK(cudaGraphicsResourceGetMappedPointer(reinterpret_cast<void**>(&devPtr), &byte_size, graphics_resource_));
     *size = byte_size / sizeof(T);
@@ -115,5 +115,5 @@ const std::size_t& GLBuffer<T>::size() const {
     return size_;
 }
 
-} // namespace interop
 } // namespace cuda
+} // namespace ltb

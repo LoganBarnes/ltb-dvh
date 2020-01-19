@@ -24,7 +24,7 @@
 
 #include "gl_buffer.hpp"
 
-namespace cuda {
+namespace ltb::cuda {
 
 template <typename T>
 class GLBufferMapGuard {
@@ -42,4 +42,4 @@ GLBufferMapGuard<T> make_gl_buffer_map_guard(GLBuffer<T>& interop_buffer) {
     return GLBufferMapGuard<T>(interop_buffer);
 }
 
-} // namespace cuda
+} // namespace ltb::cuda
