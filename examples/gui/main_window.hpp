@@ -25,6 +25,7 @@
 // project
 #include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
+#include "ltb/gvs/display/local_scene.hpp"
 
 namespace ltb::example {
 
@@ -46,6 +47,9 @@ private:
 
     // Errors
     gvs::ErrorAlert error_alert_;
+
+    // Scene
+    gvs::LocalScene scene_;
 };
 
 } // namespace ltb::example
