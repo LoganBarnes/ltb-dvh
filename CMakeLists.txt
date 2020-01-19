@@ -35,20 +35,19 @@ include(cmake/ThirdParty.cmake)
 ###########
 ### DVH ###
 ###########
-#file(GLOB_RECURSE LTB_SOURCE_FILES
-#        LIST_DIRECTORIES false
-#        CONFIGURE_DEPENDS
-#        ${CMAKE_CURRENT_LIST_DIR}/src/ltb/dvh/*
-#        )
-#
-#ltb_add_library(ltb_dvh 11 ${LTB_SOURCE_FILES})
-#ltb_link_libraries(ltb_dvh PUBLIC glm)
-#ltb_include_directories(ltb_dvh PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>")
+file(GLOB_RECURSE LTB_SOURCE_FILES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_LIST_DIR}/src/ltb/dvh/*
+        )
 
-add_library(ltb_dvh INTERFACE)
-target_link_libraries(ltb_dvh INTERFACE glm)
-target_include_directories(ltb_dvh INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>")
-
+ltb_add_library(ltb_dvh 17 ${LTB_SOURCE_FILES})
+ltb_link_libraries(ltb_dvh
+        PUBLIC
+        glm
+        doctest
+        )
+ltb_include_directories(ltb_dvh PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>")
 
 ################
 ### Examples ###

@@ -20,42 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "distance_volume_hierarchy.hpp"
 
-// project
-#include "ltb/dvh/distance_volume_hierarchy.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "ltb/gvs/display/local_scene.hpp"
+// external
+#include <doctest/doctest.h>
 
-namespace ltb::example {
-
-class MainWindow : public gvs::ImGuiMagnumApplication {
-public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
-
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
-
-    void resize(const Magnum::Vector2i& viewport) override;
-
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
-    // Errors
-    gvs::ErrorAlert error_alert_;
-
-    // Scene
-    gvs::LocalScene                              scene_;
-    gvs::SceneId                                 node_root_ = gvs::nil_id();
-    std::unordered_map<glm::ivec2, gvs::SceneId> node_ids_;
-
-    // DVH
-    dvh::DistanceVolumeHierarchy<2> dvh_;
-};
-
-} // namespace ltb::example
+// test compilation
+template class ltb::dvh::DistanceVolumeHierarchy<2, float>;
+template class ltb::dvh::DistanceVolumeHierarchy<3, float>;
+template class ltb::dvh::DistanceVolumeHierarchy<2, double>;
+template class ltb::dvh::DistanceVolumeHierarchy<3, double>;

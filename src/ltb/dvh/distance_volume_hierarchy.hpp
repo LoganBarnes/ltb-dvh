@@ -22,40 +22,47 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// project
-#include "ltb/dvh/distance_volume_hierarchy.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "ltb/gvs/display/local_scene.hpp"
+// external
+#include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 
-namespace ltb::example {
+// standard
+#include <unordered_map>
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
+namespace ltb::dvh {
+namespace detail {
+
+template <typename T, typename IVec, typename Vec>
+class DistanceVolumeHierarchy {
 public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+    DistanceVolumeHierarchy() = default;
+
+    void add_node(IVec index);
+
+    auto nodes() const -> std::unordered_map<IVec, Vec> const& { return sparse_distances_; }
 
 private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
-
-    void resize(const Magnum::Vector2i& viewport) override;
-
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
-    // Errors
-    gvs::ErrorAlert error_alert_;
-
-    // Scene
-    gvs::LocalScene                              scene_;
-    gvs::SceneId                                 node_root_ = gvs::nil_id();
-    std::unordered_map<glm::ivec2, gvs::SceneId> node_ids_;
-
-    // DVH
-    dvh::DistanceVolumeHierarchy<2> dvh_;
+    std::unordered_map<IVec, Vec> sparse_distances_;
 };
 
-} // namespace ltb::example
+template <typename T, typename IVec, typename Vec>
+void DistanceVolumeHierarchy<T, IVec, Vec>::add_node(IVec index) {
+    sparse_distances_.emplace(index, Vec(std::numeric_limits<T>::infinity()));
+}
+
+} // namespace detail
+
+template <std::size_t N = 3, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+class DistanceVolumeHierarchy;
+
+template <typename T>
+class DistanceVolumeHierarchy<2, T> : public detail::DistanceVolumeHierarchy<T, glm::ivec2, glm::tvec3<T>> {
+    using detail::DistanceVolumeHierarchy<T, glm::ivec2, glm::tvec3<T>>::DistanceVolumeHierarchy;
+};
+
+template <typename T>
+class DistanceVolumeHierarchy<3, T> : public detail::DistanceVolumeHierarchy<T, glm::ivec3, glm::tvec4<T>> {
+    using detail::DistanceVolumeHierarchy<T, glm::ivec3, glm::tvec4<T>>::DistanceVolumeHierarchy;
+};
+
+} // namespace ltb::dvh

@@ -26,9 +26,11 @@
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "ltb/util/container_utils.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
+#include <glm/gtx/string_cast.hpp>
 #include <imgui.h>
 
 using namespace Magnum;
@@ -45,16 +47,46 @@ MainWindow::MainWindow(const Arguments& arguments)
       gl_renderer_str_(GL::Context::current().rendererString()),
       error_alert_("DVH Errors") {
 
-    camera_package_.zoom_object.translate({0.f, 0.f, 20.f});
-
+    camera_package_.zoom_object.translate({0.f, 0.f, 5.f});
     camera_package_.update_object();
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
+
+    dvh_.add_node({-1, -1});
+    dvh_.add_node({0, -1});
+    dvh_.add_node({-1, 0});
+    dvh_.add_node({0, 0});
 }
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::update() {}
+void MainWindow::update() {
+
+    for (auto const& [index, dir_and_dist] : dvh_.nodes()) {
+
+        if (!util::has_key(node_ids_, index)) {
+            auto xy = glm::vec2(index);
+            node_ids_.emplace(index,
+                              scene_.add_item(gvs::SetPositions3d({
+                                                  {xy.x, xy.y, 0.f},
+                                                  {xy.x + 1.f, xy.y, 0.f},
+                                                  {xy.x + 1.f, xy.y + 1.f, 0.f},
+                                                  {xy.x, xy.y + 1.f, 0.f},
+                                                  {xy.x, xy.y, 0.f},
+                                              }),
+                                              gvs::SetGeometryFormat(gvs::GeometryFormat::LineStrip),
+                                              gvs::SetReadableId(glm::to_string(index)),
+                                              gvs::SetParent(node_root_),
+                                              gvs::SetColoring(gvs::Coloring::UniformColor),
+                                              gvs::SetShading(gvs::Shading::UniformColor)));
+        }
+
+        auto color = (std::isinf(dir_and_dist.z) ? gvs::vec3{0.5f, 0.5f, 0.5f} : gvs::default_uniform_color);
+
+        auto const& scene_id = node_ids_.at(index);
+        scene_.update_item(scene_id, gvs::SetUniformColor(color));
+    }
+}
 
 void MainWindow::render(const gvs::CameraPackage& camera_package) const {
     scene_.render(camera_package);
