@@ -28,7 +28,11 @@ file(GLOB_RECURSE LTB_SOURCE_FILES
         )
 
 add_executable(run_ltb_dvh_example ${LTB_SOURCE_FILES})
-target_link_libraries(run_ltb_dvh_example PRIVATE ltb_dvh)
+target_link_libraries(run_ltb_dvh_example
+        PRIVATE
+        ltb_gvs
+        ltb_dvh
+        )
 
 target_compile_options(run_ltb_dvh_example PRIVATE ${LTB_COMPILE_FLAGS})
 set_target_properties(
