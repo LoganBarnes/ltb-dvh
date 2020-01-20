@@ -23,6 +23,7 @@
 #pragma once
 
 // external
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
@@ -30,39 +31,70 @@
 #include <unordered_map>
 
 namespace ltb::dvh {
-namespace detail {
 
-template <typename T, typename IVec, typename Vec>
-class DistanceVolumeHierarchy {
-public:
-    DistanceVolumeHierarchy() = default;
-
-    void add_node(IVec index);
-
-    auto nodes() const -> std::unordered_map<IVec, Vec> const& { return sparse_distances_; }
-
-private:
-    std::unordered_map<IVec, Vec> sparse_distances_;
-};
-
-template <typename T, typename IVec, typename Vec>
-void DistanceVolumeHierarchy<T, IVec, Vec>::add_node(IVec index) {
-    sparse_distances_.emplace(index, Vec(std::numeric_limits<T>::infinity()));
+template <typename Func>
+void iterate(glm::ivec2 const& min_index, glm::ivec2 const& max_index, Func const& func) {
+    for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+        for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+            func(glm::ivec2{xi, yi});
+        }
+    }
 }
 
-} // namespace detail
+template <typename Func>
+void iterate(glm::ivec3 const& min_index, glm::ivec3 const& max_index, Func const& func) {
+    for (int zi = min_index.z; zi <= max_index.z; ++zi) {
+        for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+            for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+                func(glm::ivec3{xi, yi, zi});
+            }
+        }
+    }
+}
 
-template <std::size_t N = 3, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-class DistanceVolumeHierarchy;
+template <int N, typename T = float>
+class DistanceVolumeHierarchy {
+public:
+    DistanceVolumeHierarchy(glm::vec<N, int> field_min_index, glm::vec<N, int> field_max_index);
 
-template <typename T>
-class DistanceVolumeHierarchy<2, T> : public detail::DistanceVolumeHierarchy<T, glm::ivec2, glm::tvec3<T>> {
-    using detail::DistanceVolumeHierarchy<T, glm::ivec2, glm::tvec3<T>>::DistanceVolumeHierarchy;
+    template <typename SDF, typename Geometry>
+    void add_volumes(SDF const& sdf, std::vector<Geometry> const& geometries);
+
+    auto min_index() const -> glm::vec<N, int> const& { return min_index_; };
+    auto max_index() const -> glm::vec<N, int> const& { return max_index_; };
+    auto sparse_distance_field() const -> std::unordered_map<glm::vec<N, int>, glm::vec<N + 1, T>> const& {
+        return sparse_distance_field_;
+    }
+
+private:
+    glm::vec<N, int>                                         min_index_;
+    glm::vec<N, int>                                         max_index_;
+    std::unordered_map<glm::vec<N, int>, glm::vec<N + 1, T>> sparse_distance_field_;
 };
 
-template <typename T>
-class DistanceVolumeHierarchy<3, T> : public detail::DistanceVolumeHierarchy<T, glm::ivec3, glm::tvec4<T>> {
-    using detail::DistanceVolumeHierarchy<T, glm::ivec3, glm::tvec4<T>>::DistanceVolumeHierarchy;
-};
+template <int N, typename T>
+DistanceVolumeHierarchy<N, T>::DistanceVolumeHierarchy(glm::vec<N, int> field_min_index,
+                                                       glm::vec<N, int> field_max_index)
+    : min_index_(field_min_index), max_index_(field_max_index) {
+
+    sparse_distance_field_.emplace(glm::vec<N, int>(-1), glm::vec<N + 1, T>(std::numeric_limits<T>::infinity()));
+    sparse_distance_field_.emplace(glm::vec<N, int>(0), glm::vec<N + 1, T>(0));
+}
+
+template <int N, typename T>
+template <typename SDF, typename Geometry>
+void DistanceVolumeHierarchy<N, T>::add_volumes(SDF const& sdf, std::vector<Geometry> const& geometries) {
+    iterate(min_index_, max_index_, [this, &sdf, &geometries](glm::vec<N, int> const& index) {
+        auto const p = glm::vec<N, T>(index) + glm::vec<N, T>(0.5);
+
+        for (auto const& geometry : geometries) {
+            auto dist = sdf(p, geometry);
+
+            if (dist <= glm::length(glm::vec<N, T>(1))) {
+                sparse_distance_field_.insert_or_assign(index, glm::vec<N + 1, T>(p, dist));
+            }
+        }
+    });
+}
 
 } // namespace ltb::dvh

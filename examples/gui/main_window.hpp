@@ -51,8 +51,9 @@ private:
 
     // Scene
     gvs::LocalScene                              scene_;
-    gvs::SceneId                                 node_root_ = gvs::nil_id();
-    std::unordered_map<glm::ivec2, gvs::SceneId> node_ids_;
+    gvs::SceneId                                 indices_root_ = gvs::nil_id();
+    std::unordered_map<glm::ivec2, gvs::SceneId> index_scene_ids_;
+    gvs::SceneId                                 grid_root_ = gvs::nil_id();
 
     // DVH
     dvh::DistanceVolumeHierarchy<2> dvh_;
