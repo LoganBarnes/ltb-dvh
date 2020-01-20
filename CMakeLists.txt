@@ -53,9 +53,14 @@ ltb_include_directories(ltb_dvh PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_D
 ### Examples ###
 ################
 if (LTB_BUILD_DVH_EXAMPLES)
+
     ### GVS ###
     add_subdirectory(ltb-gvs)
 
     ### Examples ###
     add_subdirectory(examples)
+else ()
+
+    ### Util ###
+    add_subdirectory(ltb-gvs/ltb-util)
 endif ()
