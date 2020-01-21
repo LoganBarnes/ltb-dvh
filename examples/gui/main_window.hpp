@@ -42,6 +42,12 @@ private:
 
     void resize(const Magnum::Vector2i& viewport) override;
 
+    void handleKeyReleaseEvent(KeyEvent& event) override;
+
+    void handleMousePressEvent(MouseEvent& event) override;
+    void handleMouseReleaseEvent(MouseEvent& event) override;
+    void handleMouseMoveEvent(MouseMoveEvent& event) override;
+
     // General Info
     std::string gl_version_str_;
     std::string gl_renderer_str_;
@@ -57,6 +63,16 @@ private:
 
     // DVH
     dvh::DistanceVolumeHierarchy<2> dvh_;
+
+    // Input
+    enum class MouseMode {
+        None,
+        LineDrag,
+        AddPoints,
+        SetOffset,
+    };
+
+    MouseMode mouse_mode_ = MouseMode::None;
 };
 
 } // namespace ltb::example

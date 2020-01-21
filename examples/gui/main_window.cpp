@@ -152,4 +152,43 @@ void MainWindow::resize(const Vector2i& viewport) {
     scene_.resize(viewport);
 }
 
+void MainWindow::handleKeyReleaseEvent(KeyEvent& event) {
+    if (event.key() == KeyEvent::Key::Esc) {
+
+        switch (mouse_mode_) {
+        case MouseMode::None:
+            break;
+        case MouseMode::LineDrag:
+            mouse_mode_ = MouseMode::None;
+            break;
+        case MouseMode::AddPoints:
+            mouse_mode_ = MouseMode::SetOffset;
+            break;
+        case MouseMode::SetOffset:
+            mouse_mode_ = MouseMode::None;
+            break;
+        }
+
+        event.setAccepted(true);
+    }
+}
+
+auto MainWindow::handleMousePressEvent(MouseEvent& event) -> void {
+    if (event.button() == MouseEvent::Button::Left) {
+        event.setAccepted(true);
+    }
+}
+
+auto MainWindow::handleMouseReleaseEvent(MouseEvent& event) -> void {
+    if (event.button() == MouseEvent::Button::Left) {
+        event.setAccepted(true);
+    }
+}
+
+auto MainWindow::handleMouseMoveEvent(MouseMoveEvent& event) -> void {
+    if (event.buttons() & MouseMoveEvent::Button::Left) {
+        event.setAccepted(true);
+    }
+}
+
 } // namespace ltb::example
