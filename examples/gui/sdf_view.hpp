@@ -70,7 +70,7 @@ public:
     gvs::SceneId    oriented_lines_scene_id_ = gvs::nil_id();
 
     // Interaction
-    glm::vec3    tangent_sphere_center_ = glm::vec3(0.f);
+    glm::vec3    tangent_sphere_center_  = glm::vec3(0.f);
     gvs::SceneId tanget_sphere_scene_id_ = gvs::nil_id();
 };
 

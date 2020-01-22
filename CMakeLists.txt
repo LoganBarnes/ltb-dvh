@@ -32,6 +32,23 @@ include(ltb-gvs/ltb-util/cmake/LtbConfig.cmake) # <-- Additional project options
 ################################
 include(cmake/ThirdParty.cmake)
 
+############
+### SDFs ###
+############
+file(GLOB_RECURSE LTB_SOURCE_FILES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_LIST_DIR}/src/ltb/sdf/*
+        )
+
+ltb_add_library(ltb_sdf 17 ${LTB_SOURCE_FILES})
+ltb_link_libraries(ltb_sdf
+        PUBLIC
+        glm
+        doctest
+        )
+ltb_include_directories(ltb_sdf PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>")
+
 ###########
 ### DVH ###
 ###########
@@ -44,10 +61,8 @@ file(GLOB_RECURSE LTB_SOURCE_FILES
 ltb_add_library(ltb_dvh 17 ${LTB_SOURCE_FILES})
 ltb_link_libraries(ltb_dvh
         PUBLIC
-        glm
-        doctest
+        ltb_sdf
         )
-ltb_include_directories(ltb_dvh PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>")
 
 ################
 ### Examples ###
