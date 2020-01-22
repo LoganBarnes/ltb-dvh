@@ -24,13 +24,10 @@
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
-#include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
-#include "ltb/util/container_utils.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <imgui.h>
@@ -40,7 +37,45 @@ using namespace Platform;
 
 namespace ltb::example {
 
-SdfView::SdfView(gvs::ErrorAlertRecorder error_recorder) : error_recorder_(std::move(error_recorder)) {
+namespace {
+
+// 'p' is a point on a plane
+float intersect_plane(gvs::Ray const& ray, Vector3 p, const Vector3& plane_normal) {
+    // plane ray intersection
+    float const denom = Math::dot(ray.direction, plane_normal);
+
+    p -= ray.origin;
+    float const t = Math::dot(p, plane_normal) / denom;
+
+    if (t >= 0.f && t != std::numeric_limits<float>::infinity()) {
+        return t;
+    }
+    return std::numeric_limits<float>::infinity();
+}
+
+template <int L, typename G, typename F>
+auto find_closest(float*                    closest_distance,
+                  glm::vec<L, float> const& point,
+                  std::vector<G> const&     geometries,
+                  F const&                  sdf) {
+
+    auto abs_closest_distance = std::abs(*closest_distance);
+
+    for (const auto& geom : geometries) {
+        auto dist     = sdf(point, geom);
+        auto abs_dist = std::abs(dist);
+
+        if (abs_dist < abs_closest_distance) {
+            *closest_distance    = dist;
+            abs_closest_distance = abs_dist;
+        }
+    }
+}
+
+} // namespace
+
+SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder)
+    : camera_package_(camera_package), error_recorder_(std::move(error_recorder)) {
 
     oriented_lines_ = {
         {{2.f, -2.f}, {2.f, 2.f}},
@@ -102,9 +137,33 @@ void SdfView::resize(const Vector2i& viewport) {
     scene_.resize(viewport);
 }
 
+void SdfView::handleKeyPressEvent(Application::KeyEvent& event) {
+    event.setAccepted(true);
+
+    switch (event.key()) {
+    case Application::KeyEvent::Key::LeftCtrl:
+    case Application::KeyEvent::Key::RightCtrl:
+        ctrl_down_ = true;
+        break;
+
+    default:
+        event.setAccepted(false);
+        break;
+    }
+}
+
 void SdfView::handleKeyReleaseEvent(Application::KeyEvent& event) {
-    if (event.key() == Application::KeyEvent::Key::Esc) {
-        event.setAccepted(true);
+    event.setAccepted(true);
+
+    switch (event.key()) {
+    case Application::KeyEvent::Key::LeftCtrl:
+    case Application::KeyEvent::Key::RightCtrl:
+        ctrl_down_ = false;
+        break;
+
+    default:
+        event.setAccepted(false);
+        break;
     }
 }
 
@@ -121,8 +180,33 @@ auto SdfView::handleMouseReleaseEvent(Application::MouseEvent& event) -> void {
 }
 
 auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
-    if (event.buttons() & Application::MouseMoveEvent::Button::Left) {
+    if (!event.buttons()) {
         event.setAccepted(true);
+
+        if (ctrl_down_) {
+            auto const orbit_point
+                = camera_package_.translation_object.transformation().transformPoint(Magnum::Vector3{0.f});
+
+            auto ray          = camera_package_.get_camera_ray_from_window_pos(Vector2(event.position()));
+            auto plane_normal = (ray.origin - orbit_point).normalized();
+
+            auto dist_to_plane = intersect_plane(ray, orbit_point, plane_normal);
+            auto world_pos     = ray.origin + ray.direction * dist_to_plane;
+
+            tangent_sphere_center_ = {world_pos.x(), world_pos.y(), world_pos.z()};
+
+            distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
+
+            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, lines_, sdf::distance_to_line<3>);
+            find_closest(&distance_to_closest_geometry_,
+                         glm::vec2(tangent_sphere_center_),
+                         oriented_lines_,
+                         sdf::distance_to_line<2>);
+
+            // compare_geom(oriented_lines_, sdf::distance_to_oriented_line<2>);
+
+            update_tangent_sphere();
+        }
     }
 }
 void SdfView::update_tangent_sphere() {

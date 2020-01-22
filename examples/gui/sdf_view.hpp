@@ -34,7 +34,7 @@ namespace ltb::example {
 
 class SdfView : public View {
 public:
-    explicit SdfView(gvs::ErrorAlertRecorder error_recorder);
+    explicit SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
     ~SdfView() override;
 
     void render(const gvs::CameraPackage& camera_package) const override;
@@ -42,11 +42,14 @@ public:
 
     void resize(const Magnum::Vector2i& viewport) override;
 
+    void handleKeyPressEvent(Magnum::Platform::Application::KeyEvent& event) override;
     void handleKeyReleaseEvent(Magnum::Platform::Application::KeyEvent& event) override;
 
     void handleMousePressEvent(Magnum::Platform::Application::MouseEvent& event) override;
     void handleMouseReleaseEvent(Magnum::Platform::Application::MouseEvent& event) override;
     void handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent& event) override;
+
+    gvs::OrbitCameraPackage& camera_package_;
 
     // Errors
     gvs::ErrorAlertRecorder error_recorder_;
@@ -65,6 +68,9 @@ public:
     glm::vec3    tangent_sphere_center_        = glm::vec3(0.f);
     float        distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
     gvs::SceneId tangent_sphere_scene_id_      = gvs::nil_id();
+
+    // Inputs
+    bool ctrl_down_ = false;
 
     void update_tangent_sphere();
 };

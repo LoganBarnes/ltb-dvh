@@ -47,7 +47,7 @@ MainWindow::MainWindow(const Arguments& arguments)
       gl_version_str_(GL::Context::current().versionString()),
       gl_renderer_str_(GL::Context::current().rendererString()),
       error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")),
-      sdf_view_(error_alert_) {
+      sdf_view_(camera_package_, error_alert_) {
 
     camera_package_.zoom_object.translate({0.f, 0.f, 5.f});
     camera_package_.update_object();
@@ -98,6 +98,10 @@ void MainWindow::configure_gui() {
 
 void MainWindow::resize(const Vector2i& viewport) {
     current_view_->resize(viewport);
+}
+
+void MainWindow::handleKeyPressEvent(KeyEvent& event) {
+    current_view_->handleKeyPressEvent(event);
 }
 
 void MainWindow::handleKeyReleaseEvent(KeyEvent& event) {

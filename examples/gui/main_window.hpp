@@ -40,6 +40,7 @@ private:
 
     void resize(const Magnum::Vector2i& viewport) override;
 
+    void handleKeyPressEvent(KeyEvent& event) override;
     void handleKeyReleaseEvent(KeyEvent& event) override;
 
     void handleMousePressEvent(MouseEvent& event) override;
