@@ -20,14 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "lines.hpp"
+// project
+#include "line.hpp"
 
+// external
 #include <doctest/doctest.h>
 
 namespace {
 using namespace ltb;
 
-TEST_CASE_TEMPLATE("[sdf] distance_to_line", T, glm::vec2, glm::vec3, glm::vec3, glm::dvec3) {
+TEST_CASE_TEMPLATE("distance_to_line [sdf]", T, glm::vec2, glm::vec3, glm::vec3, glm::dvec3) {
     auto line  = sdf::make_line(T(-1), T(2));
     auto point = T(0);
 

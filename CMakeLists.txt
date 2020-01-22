@@ -41,6 +41,8 @@ file(GLOB_RECURSE LTB_SOURCE_FILES
         ${CMAKE_CURRENT_LIST_DIR}/src/ltb/sdf/*
         )
 
+message(STATUS "LTB_SOURCE_FILES ${LTB_SOURCE_FILES}")
+
 ltb_add_library(ltb_sdf 17 ${LTB_SOURCE_FILES})
 ltb_link_libraries(ltb_sdf
         PUBLIC

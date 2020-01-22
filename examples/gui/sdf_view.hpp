@@ -32,6 +32,12 @@
 
 namespace ltb::example {
 
+template <template <int, typename> class G, int L, typename T = float>
+struct Geometry {
+    G<L, T>        geometry;
+    glm::vec<L, T> translation;
+};
+
 class SdfView : public View {
 public:
     explicit SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
@@ -55,14 +61,13 @@ public:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // Geometry
-    std::vector<sdf::Line<3>> lines_;
-    std::vector<sdf::Line<2>> oriented_lines_;
+    std::vector<sdf::Line<3>>          lines_;
+    std::vector<sdf::Line<2>>          oriented_lines_;
+    std::vector<Geometry<sdf::Box, 2>> squares_;
 
     // Scene
     gvs::LocalScene scene_;
-    gvs::SceneId    geometry_root_scene_id_  = gvs::nil_id();
-    gvs::SceneId    lines_scene_id_          = gvs::nil_id();
-    gvs::SceneId    oriented_lines_scene_id_ = gvs::nil_id();
+    gvs::SceneId    geometry_root_scene_id_ = gvs::nil_id();
 
     // Interaction
     glm::vec3 tangent_sphere_center_ = glm::vec3(0.f);

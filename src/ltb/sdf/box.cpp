@@ -20,8 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
-
+// project
 #include "box.hpp"
-#include "line.hpp"
-#include "offset.hpp"
+
+// external
+#include <doctest/doctest.h>
+
+namespace {
+using namespace ltb;
+
+TEST_CASE_TEMPLATE("distance_to_box [sdf]", T, glm::vec2, glm::vec3, glm::vec3, glm::dvec3) {
+    auto box   = sdf::make_box(T(-1));
+    auto point = T(0);
+
+    CHECK(sdf::distance_to_box(point, box) == doctest::Approx(1));
+}
+
+} // namespace

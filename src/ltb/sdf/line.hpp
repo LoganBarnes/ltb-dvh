@@ -28,7 +28,6 @@
 #include <glm/gtx/exterior_product.hpp>
 
 // standard
-#include <stdexcept>
 #include <type_traits>
 
 namespace ltb::sdf {
