@@ -23,8 +23,6 @@
 #pragma once
 
 // project
-#include "ltb/dvh/distance_volume_hierarchy.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
 #include "ltb/sdf/sdf.hpp"
@@ -55,6 +53,8 @@ public:
     void handleMouseReleaseEvent(Magnum::Platform::Application::MouseEvent& event) override;
     void handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent& event) override;
 
+private:
+    // Camera
     gvs::OrbitCameraPackage& camera_package_;
 
     // Errors

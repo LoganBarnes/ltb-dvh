@@ -348,6 +348,7 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
         }
     }
 }
+
 void SdfView::update_tangent_sphere() {
     constexpr auto identity = glm::identity<glm::mat4>();
 

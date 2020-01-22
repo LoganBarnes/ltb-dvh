@@ -24,55 +24,42 @@
 
 // project
 #include "ltb/dvh/distance_volume_hierarchy.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
+#include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
+#include "view.hpp"
 
 namespace ltb::example {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
+class DvhView2d : public View {
 public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+    explicit DvhView2d(gvs::ErrorAlertRecorder error_recorder);
+    ~DvhView2d() override;
 
-private:
     void update() override;
     void render(const gvs::CameraPackage& camera_package) const override;
     void configure_gui() override;
 
     void resize(const Magnum::Vector2i& viewport) override;
 
-    void handleKeyReleaseEvent(KeyEvent& event) override;
+    void handleKeyPressEvent(Magnum::Platform::Application::KeyEvent& event) override;
+    void handleKeyReleaseEvent(Magnum::Platform::Application::KeyEvent& event) override;
 
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
+    void handleMousePressEvent(Magnum::Platform::Application::MouseEvent& event) override;
+    void handleMouseReleaseEvent(Magnum::Platform::Application::MouseEvent& event) override;
+    void handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent& event) override;
 
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
+private:
     // Errors
-    gvs::ErrorAlert error_alert_;
+    gvs::ErrorAlertRecorder error_recorder_;
+
+    // DVH
+    dvh::DistanceVolumeHierarchy<2> dvh_;
 
     // Scene
     gvs::LocalScene                              scene_;
     gvs::SceneId                                 indices_root_ = gvs::nil_id();
     std::unordered_map<glm::ivec2, gvs::SceneId> index_scene_ids_;
     gvs::SceneId                                 grid_root_ = gvs::nil_id();
-
-    // DVH
-    dvh::DistanceVolumeHierarchy<2> dvh_;
-
-    // Input
-    enum class MouseMode {
-        None,
-        LineDrag,
-        AddPoints,
-        SetOffset,
-    };
-
-    MouseMode mouse_mode_ = MouseMode::None;
 };
 
 } // namespace ltb::example

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "main_window.hpp"
+#include "dvh_view_2d.hpp"
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
@@ -34,6 +34,7 @@
 #include <imgui.h>
 
 using namespace Magnum;
+using namespace Platform;
 
 namespace ltb::example {
 namespace {
@@ -62,19 +63,8 @@ void build_grids(dvh::DistanceVolumeHierarchy<2> const& dvh, gvs::Scene* scene, 
 
 } // namespace
 
-MainWindow::MainWindow(const Arguments& arguments)
-    : gvs::ImGuiMagnumApplication(arguments,
-                                  Configuration{}
-                                      .setTitle("Distance Volume Hierarchy")
-                                      .setSize({1280, 720})
-                                      .setWindowFlags(Configuration::WindowFlag::Resizable)),
-      gl_version_str_(GL::Context::current().versionString()),
-      gl_renderer_str_(GL::Context::current().rendererString()),
-      error_alert_("DVH Errors"),
-      dvh_({-1, -2}, {1, 0}) {
-
-    camera_package_.zoom_object.translate({0.f, 0.f, 5.f});
-    camera_package_.update_object();
+DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
+    : error_recorder_(std::move(error_recorder)), dvh_({-1, -2}, {1, 0}) {
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     indices_root_ = scene_.add_item(gvs::SetReadableId("Volume"), gvs::SetPositions3d());
@@ -83,9 +73,9 @@ MainWindow::MainWindow(const Arguments& arguments)
     build_grids(dvh_, &scene_, grid_root_);
 }
 
-MainWindow::~MainWindow() = default;
+DvhView2d::~DvhView2d() = default;
 
-void MainWindow::update() {
+void DvhView2d::update() {
 
     for (auto const& [index, dir_and_dist] : dvh_.sparse_distance_field()) {
 
@@ -111,84 +101,26 @@ void MainWindow::update() {
     }
 }
 
-void MainWindow::render(const gvs::CameraPackage& camera_package) const {
+void DvhView2d::render(const gvs::CameraPackage& camera_package) const {
     scene_.render(camera_package);
 }
 
-void MainWindow::configure_gui() {
-
-    auto add_three_line_separator = [] {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Spacing();
-    };
-
-    auto height = static_cast<float>(this->windowSize().y());
-
-    ImGui::SetNextWindowPos({0.f, 0.f});
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0.f, height), ImVec2(std::numeric_limits<float>::infinity(), height));
-    ImGui::Begin("Settings", nullptr, ImVec2(350.f, height));
-
-    ImGui::Text("GL Version:   ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_version_str_.c_str());
-
-    ImGui::Text("GL Renderer:  ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_renderer_str_.c_str());
-
-    add_three_line_separator();
-
+void DvhView2d::configure_gui() {
     gvs::configure_gui(&scene_);
-
-    ImGui::End();
-
-    error_alert_.display_next_error();
 }
 
-void MainWindow::resize(const Vector2i& viewport) {
+void DvhView2d::resize(const Vector2i& viewport) {
     scene_.resize(viewport);
 }
 
-void MainWindow::handleKeyReleaseEvent(KeyEvent& event) {
-    if (event.key() == KeyEvent::Key::Esc) {
+void DvhView2d::handleKeyPressEvent(Application::KeyEvent& /*event*/) {}
 
-        switch (mouse_mode_) {
-        case MouseMode::None:
-            break;
-        case MouseMode::LineDrag:
-            mouse_mode_ = MouseMode::None;
-            break;
-        case MouseMode::AddPoints:
-            mouse_mode_ = MouseMode::SetOffset;
-            break;
-        case MouseMode::SetOffset:
-            mouse_mode_ = MouseMode::None;
-            break;
-        }
+void DvhView2d::handleKeyReleaseEvent(Application::KeyEvent& /*event*/) {}
 
-        event.setAccepted(true);
-    }
-}
+auto DvhView2d::handleMousePressEvent(Application::MouseEvent & /*event*/) -> void {}
 
-auto MainWindow::handleMousePressEvent(MouseEvent& event) -> void {
-    if (event.button() == MouseEvent::Button::Left) {
-        event.setAccepted(true);
-    }
-}
+auto DvhView2d::handleMouseReleaseEvent(Application::MouseEvent & /*event*/) -> void {}
 
-auto MainWindow::handleMouseReleaseEvent(MouseEvent& event) -> void {
-    if (event.button() == MouseEvent::Button::Left) {
-        event.setAccepted(true);
-    }
-}
-
-auto MainWindow::handleMouseMoveEvent(MouseMoveEvent& event) -> void {
-    if (event.buttons() & MouseMoveEvent::Button::Left) {
-        event.setAccepted(true);
-    }
-}
+auto DvhView2d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) -> void {}
 
 } // namespace ltb::example
