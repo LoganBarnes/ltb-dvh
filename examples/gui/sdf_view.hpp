@@ -25,9 +25,10 @@
 // project
 #include "ltb/dvh/distance_volume_hierarchy.hpp"
 #include "ltb/gvs/display/gui/error_alert.hpp"
+#include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
+#include "ltb/sdf/sdf.hpp"
 #include "view.hpp"
-#include <ltb/gvs/display/gui/error_alert_recorder.hpp>
 
 namespace ltb::example {
 
@@ -51,17 +52,8 @@ public:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // Geometry
-    struct Line {
-        glm::vec3 start;
-        glm::vec3 end;
-    };
-    std::vector<Line> lines_;
-
-    struct OrientedLine {
-        glm::vec3 start;
-        glm::vec3 end;
-    };
-    std::vector<OrientedLine> oriented_lines_;
+    std::vector<sdf::Line<3>> lines_;
+    std::vector<sdf::Line<2>> oriented_lines_;
 
     // Scene
     gvs::LocalScene scene_;
@@ -70,8 +62,11 @@ public:
     gvs::SceneId    oriented_lines_scene_id_ = gvs::nil_id();
 
     // Interaction
-    glm::vec3    tangent_sphere_center_  = glm::vec3(0.f);
-    gvs::SceneId tanget_sphere_scene_id_ = gvs::nil_id();
+    glm::vec3    tangent_sphere_center_        = glm::vec3(0.f);
+    float        distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
+    gvs::SceneId tangent_sphere_scene_id_      = gvs::nil_id();
+
+    void update_tangent_sphere();
 };
 
 } // namespace ltb::example
