@@ -44,7 +44,7 @@ auto make_line(glm::vec<L, T> start, glm::vec<L, T> end) -> Line<L, T> {
 }
 
 template <int L, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto vector_to_line(glm::vec<L, T> const& point, Line<L, T> const& line) -> glm::vec<L, T> {
+auto vector_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> glm::vec<L, T> {
     auto start_to_point = point - line.start;
     auto start_to_end   = line.end - line.start;
 
@@ -55,14 +55,14 @@ auto vector_to_line(glm::vec<L, T> const& point, Line<L, T> const& line) -> glm:
 }
 
 template <int L, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto distance_to_line(glm::vec<L, T> const& point, Line<L, T> const& line) -> T {
-    return glm::length(vector_to_line(point, line));
+auto distance_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> T {
+    return glm::length(vector_to_geometry(point, line));
 }
 
 template <typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto distance_to_oriented_line(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
+auto distance_to_oriented_geometry(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
     T negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
-    return distance_to_line(point, line) * negative_if_inside;
+    return distance_to_geometry(point, line) * negative_if_inside;
 }
 
 } // namespace ltb::sdf

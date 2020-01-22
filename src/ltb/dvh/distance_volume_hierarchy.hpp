@@ -22,6 +22,9 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+// project
+#include <ltb/sdf/sdf.hpp>
+
 // external
 #include <glm/geometric.hpp>
 #include <glm/glm.hpp>
@@ -57,8 +60,8 @@ class DistanceVolumeHierarchy {
 public:
     DistanceVolumeHierarchy(glm::vec<N, int> field_min_index, glm::vec<N, int> field_max_index);
 
-    template <typename SDF, typename Geometry>
-    void add_volumes(SDF const& sdf, std::vector<Geometry> const& geometries);
+    template <typename Geom>
+    void add_volumes(std::vector<Geom> const& geometries);
 
     auto min_index() const -> glm::vec<N, int> const& { return min_index_; };
     auto max_index() const -> glm::vec<N, int> const& { return max_index_; };
@@ -82,13 +85,13 @@ DistanceVolumeHierarchy<N, T>::DistanceVolumeHierarchy(glm::vec<N, int> field_mi
 }
 
 template <int N, typename T>
-template <typename SDF, typename Geometry>
-void DistanceVolumeHierarchy<N, T>::add_volumes(SDF const& sdf, std::vector<Geometry> const& geometries) {
-    iterate(min_index_, max_index_, [this, &sdf, &geometries](glm::vec<N, int> const& index) {
+template <typename Geom>
+void DistanceVolumeHierarchy<N, T>::add_volumes(std::vector<Geom> const& geometries) {
+    iterate(min_index_, max_index_, [this, &geometries](glm::vec<N, int> const& index) {
         auto const p = glm::vec<N, T>(index) + glm::vec<N, T>(0.5);
 
         for (auto const& geometry : geometries) {
-            auto dist = sdf(p, geometry);
+            auto dist = sdf::distance_to_geometry(p, geometry);
 
             if (dist <= glm::length(glm::vec<N, T>(1))) {
                 sparse_distance_field_.insert_or_assign(index, glm::vec<N + 1, T>(p, dist));

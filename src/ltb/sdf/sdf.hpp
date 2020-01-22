@@ -23,5 +23,6 @@
 #pragma once
 
 #include "box.hpp"
+#include "geometry.hpp"
 #include "line.hpp"
 #include "offset.hpp"

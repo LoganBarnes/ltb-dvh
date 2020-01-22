@@ -43,7 +43,7 @@ auto make_box(glm::vec<L, T> dimensions) -> Box<L, T> {
 }
 
 template <int L, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto vector_to_box(glm::vec<L, T> const& point, Box<L, T> const& box) -> glm::vec<L, T> {
+auto vector_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> glm::vec<L, T> {
     auto positive_point      = glm::abs(point);
     auto positive_box_corner = box.dimensions * T(0.5);
 
@@ -62,7 +62,7 @@ auto vector_to_box(glm::vec<L, T> const& point, Box<L, T> const& box) -> glm::ve
 }
 
 template <int L, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto distance_to_box(glm::vec<L, T> const& point, Box<L, T> const& box) -> T {
+auto distance_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> T {
     auto positive_point      = glm::abs(point);
     auto positive_box_corner = box.dimensions * T(0.5);
 

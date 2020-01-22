@@ -30,12 +30,6 @@
 
 namespace ltb::example {
 
-template <template <int, typename> class G, int L, typename T = float>
-struct Geometry {
-    G<L, T>        geometry;
-    glm::vec<L, T> translation;
-};
-
 class SdfView : public View {
 public:
     explicit SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
@@ -61,9 +55,9 @@ private:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // Geometry
-    std::vector<sdf::Line<3>>          lines_;
-    std::vector<sdf::Line<2>>          oriented_lines_;
-    std::vector<Geometry<sdf::Box, 2>> squares_;
+    std::vector<sdf::Line<3>>               lines_;
+    std::vector<sdf::Line<2>>               oriented_lines_;
+    std::vector<sdf::Geometry<sdf::Box, 2>> squares_;
 
     // Scene
     gvs::LocalScene scene_;

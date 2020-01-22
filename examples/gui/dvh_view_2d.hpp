@@ -26,6 +26,7 @@
 #include "ltb/dvh/distance_volume_hierarchy.hpp"
 #include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
+#include "ltb/sdf/sdf.hpp"
 #include "view.hpp"
 
 namespace ltb::example {
@@ -54,6 +55,9 @@ private:
 
     // DVH
     dvh::DistanceVolumeHierarchy<2> dvh_;
+
+    // Additive Volumes
+    std::vector<sdf::Geometry<sdf::Box, 2>> additive_boxes_;
 
     // Scene
     gvs::LocalScene                              scene_;

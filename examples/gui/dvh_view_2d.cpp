@@ -26,6 +26,7 @@
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "ltb/sdf/sdf.hpp"
 #include "ltb/util/container_utils.hpp"
 
 // external
@@ -65,6 +66,8 @@ void build_grids(dvh::DistanceVolumeHierarchy<2> const& dvh, gvs::Scene* scene, 
 
 DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
     : error_recorder_(std::move(error_recorder)), dvh_({-1, -2}, {1, 0}) {
+
+    dvh_.add_volumes(additive_boxes_);
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     indices_root_ = scene_.add_item(gvs::SetReadableId("Volume"), gvs::SetPositions3d());

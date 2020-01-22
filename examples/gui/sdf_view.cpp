@@ -53,37 +53,13 @@ float intersect_plane(gvs::Ray const& ray, Vector3 p, const Vector3& plane_norma
     return std::numeric_limits<float>::infinity();
 }
 
-template <int L, typename G, typename F>
-auto find_closest(float*                    closest_distance,
-                  glm::vec<L, float> const& point,
-                  std::vector<G> const&     geometries,
-                  F const&                  sdf) {
+template <int L, typename G>
+auto find_closest(float* closest_distance, glm::vec<L, float> const& point, std::vector<G> const& geometries) {
 
     auto abs_closest_distance = std::abs(*closest_distance);
 
     for (const auto& geometry : geometries) {
-        auto dist     = sdf(point, geometry);
-        auto abs_dist = std::abs(dist);
-
-        if (abs_dist < abs_closest_distance) {
-            *closest_distance    = dist;
-            abs_closest_distance = abs_dist;
-        }
-    }
-}
-
-template <int L, template <int, typename> class G, typename F>
-auto find_closest(float*                                    closest_distance,
-                  glm::vec<L, float> const&                 point,
-                  std::vector<Geometry<G, L, float>> const& geometries,
-                  F const&                                  sdf) {
-
-    auto abs_closest_distance = std::abs(*closest_distance);
-
-    for (const auto& geometry : geometries) {
-        auto const p = point - geometry.translation;
-
-        auto dist     = sdf(p, geometry.geometry);
+        auto dist     = sdf::distance_to_geometry(point, geometry);
         auto abs_dist = std::abs(dist);
 
         if (abs_dist < abs_closest_distance) {
@@ -103,37 +79,13 @@ auto to_vec3(glm::vec<3, T> const& input) -> glm::vec<3, T> {
     return input;
 }
 
-template <int L, typename G, typename F>
-auto find_closest(glm::vec<3, float>*       closest_vec,
-                  glm::vec<L, float> const& point,
-                  std::vector<G> const&     geometries,
-                  F const&                  sdf) {
+template <int L, typename G>
+auto find_closest(glm::vec<3, float>* closest_vec, glm::vec<L, float> const& point, std::vector<G> const& geometries) {
 
     auto abs_closest_distance = glm::length(*closest_vec);
 
     for (const auto& geometry : geometries) {
-        auto vec_to_geom = sdf(point, geometry);
-        auto abs_dist    = glm::length(vec_to_geom);
-
-        if (abs_dist < abs_closest_distance) {
-            *closest_vec         = to_vec3<float>(vec_to_geom);
-            abs_closest_distance = abs_dist;
-        }
-    }
-}
-
-template <int L, template <int, typename> class G, typename F>
-auto find_closest(glm::vec<3, float>*                       closest_vec,
-                  glm::vec<L, float> const&                 point,
-                  std::vector<Geometry<G, L, float>> const& geometries,
-                  F const&                                  sdf) {
-
-    auto abs_closest_distance = glm::length(*closest_vec);
-
-    for (const auto& geometry : geometries) {
-        auto const p = point - geometry.translation;
-
-        auto vec_to_geom = sdf(p, geometry.geometry);
+        auto vec_to_geom = sdf::vector_to_geometry(point, geometry);
         auto abs_dist    = glm::length(vec_to_geom);
 
         if (abs_dist < abs_closest_distance) {
@@ -155,8 +107,8 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
     };
 
     squares_ = {
-        {{{2.4f, 1.3f}}, {0.5f, -2.f}},
-        {{{1.2f, 4.f}}, {-3.f, 0.5f}},
+        sdf::make_geometry(sdf::make_box<2>({2.4f, 1.3f}), {0.5f, -2.f}),
+        sdf::make_geometry(sdf::make_box<2>({1.2f, 4.f}), {-3.f, 0.5f}),
     };
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
@@ -323,13 +275,9 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
         auto tangent_sphere_center_2d = glm::vec2(tangent_sphere_center_);
 
         if (ctrl_down_) {
-            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, lines_, sdf::distance_to_line<3>);
-            find_closest(&distance_to_closest_geometry_,
-                         glm::vec2(tangent_sphere_center_),
-                         oriented_lines_,
-                         sdf::distance_to_oriented_line<>);
-
-            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_2d, squares_, sdf::distance_to_box<2>);
+            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, lines_);
+            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_2d, oriented_lines_);
+            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_2d, squares_);
 
             update_tangent_sphere();
         }
@@ -337,9 +285,9 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
         if (shift_down_) {
             auto closest = glm::vec3(std::numeric_limits<float>::infinity());
 
-            find_closest(&closest, tangent_sphere_center_, lines_, sdf::vector_to_line<3>);
-            find_closest(&closest, tangent_sphere_center_2d, oriented_lines_, sdf::vector_to_line<2>);
-            find_closest(&closest, tangent_sphere_center_2d, squares_, sdf::vector_to_box<2>);
+            find_closest(&closest, tangent_sphere_center_, lines_);
+            find_closest(&closest, tangent_sphere_center_2d, oriented_lines_);
+            find_closest(&closest, tangent_sphere_center_2d, squares_);
 
             line_to_closest_geometry_.start = tangent_sphere_center_;
             line_to_closest_geometry_.end   = tangent_sphere_center_ + closest;
