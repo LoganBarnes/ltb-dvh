@@ -43,4 +43,6 @@ ltb_link_libraries(ltb_dvh_example
         ltb_dvh
         doctest
         )
+target_link_libraries(test_ltb_dvh_example PRIVATE ltb_gvs_testing)
+
 ltb_include_directories(ltb_dvh_example PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>")
