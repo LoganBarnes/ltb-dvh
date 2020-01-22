@@ -65,14 +65,20 @@ public:
     gvs::SceneId    oriented_lines_scene_id_ = gvs::nil_id();
 
     // Interaction
-    glm::vec3    tangent_sphere_center_        = glm::vec3(0.f);
+    glm::vec3 tangent_sphere_center_ = glm::vec3(0.f);
+
     float        distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
     gvs::SceneId tangent_sphere_scene_id_      = gvs::nil_id();
 
+    sdf::Line<3> line_to_closest_geometry_{};
+    gvs::SceneId sdf_line_scene_id_ = gvs::nil_id();
+
     // Inputs
-    bool ctrl_down_ = false;
+    bool ctrl_down_  = false;
+    bool shift_down_ = false;
 
     void update_tangent_sphere();
+    void update_sdf_line();
 };
 
 } // namespace ltb::example

@@ -72,6 +72,25 @@ auto find_closest(float*                    closest_distance,
     }
 }
 
+template <int L, typename G, typename F>
+auto find_closest(glm::vec<L, float>*       closest_vec,
+                  glm::vec<L, float> const& point,
+                  std::vector<G> const&     geometries,
+                  F const&                  sdf) {
+
+    auto abs_closest_distance = glm::length(*closest_vec);
+
+    for (const auto& geom : geometries) {
+        auto vec_to_geom = sdf(point, geom);
+        auto abs_dist    = glm::length(vec_to_geom);
+
+        if (abs_dist < abs_closest_distance) {
+            *closest_vec         = vec_to_geom;
+            abs_closest_distance = abs_dist;
+        }
+    }
+}
+
 } // namespace
 
 SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder)
@@ -120,6 +139,12 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
     tangent_sphere_scene_id_ = scene_.add_item(gvs::SetReadableId("Tangent Sphere"),
                                                gvs::SetPrimitive(gvs::Sphere{}),
                                                gvs::SetShading(gvs::Shading::Lambertian));
+
+    sdf_line_scene_id_ = scene_.add_item(gvs::SetReadableId("Tangent Sphere"),
+                                         gvs::SetPositions3d(),
+                                         gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
+                                         gvs::SetColoring(gvs::Coloring::TextureCoordinates),
+                                         gvs::SetShading(gvs::Shading::UniformColor));
     update_tangent_sphere();
 }
 
@@ -146,6 +171,11 @@ void SdfView::handleKeyPressEvent(Application::KeyEvent& event) {
         ctrl_down_ = true;
         break;
 
+    case Application::KeyEvent::Key::LeftShift:
+    case Application::KeyEvent::Key::RightShift:
+        shift_down_ = true;
+        break;
+
     default:
         event.setAccepted(false);
         break;
@@ -159,6 +189,11 @@ void SdfView::handleKeyReleaseEvent(Application::KeyEvent& event) {
     case Application::KeyEvent::Key::LeftCtrl:
     case Application::KeyEvent::Key::RightCtrl:
         ctrl_down_ = false;
+        break;
+
+    case Application::KeyEvent::Key::LeftShift:
+    case Application::KeyEvent::Key::RightShift:
+        shift_down_ = false;
         break;
 
     default:
@@ -183,7 +218,7 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
     if (!event.buttons()) {
         event.setAccepted(true);
 
-        if (ctrl_down_) {
+        if (ctrl_down_ || shift_down_) {
             auto const orbit_point
                 = camera_package_.translation_object.transformation().transformPoint(Magnum::Vector3{0.f});
 
@@ -196,7 +231,9 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
             tangent_sphere_center_ = {world_pos.x(), world_pos.y(), world_pos.z()};
 
             distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
+        }
 
+        if (ctrl_down_) {
             find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, lines_, sdf::distance_to_line<3>);
             find_closest(&distance_to_closest_geometry_,
                          glm::vec2(tangent_sphere_center_),
@@ -206,6 +243,21 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
             // compare_geom(oriented_lines_, sdf::distance_to_oriented_line<2>);
 
             update_tangent_sphere();
+        }
+
+        if (shift_down_) {
+            auto closest3 = glm::vec3(std::numeric_limits<float>::infinity());
+            auto closest2 = glm::vec2(std::numeric_limits<float>::infinity());
+
+            find_closest(&closest3, tangent_sphere_center_, lines_, sdf::vector_to_line<3>);
+            find_closest(&closest2, glm::vec2(tangent_sphere_center_), oriented_lines_, sdf::vector_to_line<2>);
+
+            line_to_closest_geometry_.start = tangent_sphere_center_;
+            line_to_closest_geometry_.end   = tangent_sphere_center_ + glm::vec3(closest2, 0.f);
+
+            // compare_geom(oriented_lines_, sdf::distance_to_oriented_line<2>);
+
+            update_sdf_line();
         }
     }
 }
@@ -224,7 +276,25 @@ void SdfView::update_tangent_sphere() {
 
     auto color = (distance_to_closest_geometry_ < 0.f ? gvs::vec3{0.f, 1.f, 1.f} : gvs::vec3{1.f, 0.5f, 0.1f});
 
-    scene_.update_item(tangent_sphere_scene_id_, gvs::SetTransformation(tmp_conversion), gvs::SetUniformColor(color));
+    scene_.update_item(tangent_sphere_scene_id_,
+                       gvs::SetVisible(true),
+                       gvs::SetTransformation(tmp_conversion),
+                       gvs::SetUniformColor(color));
+
+    scene_.update_item(sdf_line_scene_id_, gvs::SetVisible(false));
+}
+
+void SdfView::update_sdf_line() {
+
+    auto color = (distance_to_closest_geometry_ < 0.f ? gvs::vec3{0.f, 1.f, 1.f} : gvs::vec3{1.f, 0.5f, 0.1f});
+
+    scene_.update_item(sdf_line_scene_id_,
+                       gvs::SetVisible(true),
+                       gvs::SetPositions3d({line_to_closest_geometry_.start, line_to_closest_geometry_.end}),
+                       gvs::SetTextureCoordinates3d({{0.f, 0.f}, {0.f, 1.f}}),
+                       gvs::SetUniformColor(color));
+
+    scene_.update_item(tangent_sphere_scene_id_, gvs::SetVisible(false));
 }
 
 } // namespace ltb::example
