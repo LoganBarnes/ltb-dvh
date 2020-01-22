@@ -62,8 +62,8 @@ auto distance_to_line(glm::vec<L, T> const& point, Line<L, T> const& line) -> T 
 
 template <typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 auto distance_to_oriented_line(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
-    bool inside = (glm::cross(point - line.start, line.end - line.start) < 0.f);
-    return distance_to_line(point, line) * (inside ? T(-1) : T(1));
+    T inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
+    return distance_to_line(point, line) * inside;
 }
 
 } // namespace ltb::sdf
