@@ -25,6 +25,7 @@
 // project
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "scene_helpers.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
@@ -145,34 +146,12 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
                     gvs::SetShading(gvs::Shading::UniformColor),
                     gvs::SetParent(geometry_root_scene_id_));
 
-    lines.clear();
-    for (const auto& square : squares_) {
-        auto d = square.geometry.dimensions / 2.f;
+    auto squares_scene_id = add_boxes_to_scene(&scene_, squares_, geometry_root_scene_id_);
 
-        auto p0 = glm::vec2(-d.x, -d.y) + square.translation;
-        auto p1 = glm::vec2(d.x, -d.y) + square.translation;
-        auto p2 = glm::vec2(d.x, d.y) + square.translation;
-        auto p3 = glm::vec2(-d.x, d.y) + square.translation;
-
-        lines.emplace_back(p0.x, p0.y, 0.f);
-        lines.emplace_back(p1.x, p1.y, 0.f);
-
-        lines.emplace_back(p1.x, p1.y, 0.f);
-        lines.emplace_back(p2.x, p2.y, 0.f);
-
-        lines.emplace_back(p2.x, p2.y, 0.f);
-        lines.emplace_back(p3.x, p3.y, 0.f);
-
-        lines.emplace_back(p3.x, p3.y, 0.f);
-        lines.emplace_back(p0.x, p0.y, 0.f);
-    }
-
-    scene_.add_item(gvs::SetReadableId("Squares"),
-                    gvs::SetPositions3d(lines),
-                    gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
-                    gvs::SetColoring(gvs::Coloring::UniformColor),
-                    gvs::SetShading(gvs::Shading::UniformColor),
-                    gvs::SetParent(geometry_root_scene_id_));
+    scene_.update_item(squares_scene_id,
+                       gvs::SetReadableId("Squares"),
+                       gvs::SetColoring(gvs::Coloring::UniformColor),
+                       gvs::SetShading(gvs::Shading::UniformColor));
 
     // SDF Feedback
     tangent_sphere_scene_id_ = scene_.add_item(gvs::SetReadableId("Tangent Sphere"),

@@ -20,46 +20,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "scene_helpers.hpp"
 
 // project
-#include "dvh_view_2d.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "sdf_view.hpp"
+#include "ltb/gvs/core/log_params.hpp"
 
 namespace ltb::example {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
-public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+auto add_boxes_to_scene(gvs::Scene*                                    scene,
+                        std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
+                        gvs::SceneId const&                            parent) -> gvs::SceneId {
 
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
+    std::vector<glm::vec3> lines;
 
-    void resize(const Magnum::Vector2i& viewport) override;
+    for (const auto& square : boxes) {
+        auto d = square.geometry.dimensions / 2.f;
 
-    void handleKeyPressEvent(KeyEvent& event) override;
-    void handleKeyReleaseEvent(KeyEvent& event) override;
+        auto p0 = glm::vec2(-d.x, -d.y) + square.translation;
+        auto p1 = glm::vec2(d.x, -d.y) + square.translation;
+        auto p2 = glm::vec2(d.x, d.y) + square.translation;
+        auto p3 = glm::vec2(-d.x, d.y) + square.translation;
 
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
+        lines.emplace_back(p0.x, p0.y, 0.f);
+        lines.emplace_back(p1.x, p1.y, 0.f);
 
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
+        lines.emplace_back(p1.x, p1.y, 0.f);
+        lines.emplace_back(p2.x, p2.y, 0.f);
 
-    // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
+        lines.emplace_back(p2.x, p2.y, 0.f);
+        lines.emplace_back(p3.x, p3.y, 0.f);
 
-    // Views
-    SdfView   sdf_view_;
-    DvhView2d dvh_view_2d_;
+        lines.emplace_back(p3.x, p3.y, 0.f);
+        lines.emplace_back(p0.x, p0.y, 0.f);
+    }
 
-    View* current_view_ = &dvh_view_2d_;
-};
+    return scene->add_item(gvs::SetPositions3d(lines),
+                           gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
+                           gvs::SetParent(parent));
+}
 
 } // namespace ltb::example

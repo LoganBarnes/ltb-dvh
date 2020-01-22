@@ -93,7 +93,7 @@ void DistanceVolumeHierarchy<N, T>::add_volumes(std::vector<Geom> const& geometr
         for (auto const& geometry : geometries) {
             auto dist = sdf::distance_to_geometry(p, geometry);
 
-            if (dist <= glm::length(glm::vec<N, T>(1))) {
+            if (dist <= glm::length(glm::vec<N, T>(0.5))) {
                 sparse_distance_field_.insert_or_assign(index, glm::vec<N + 1, T>(p, dist));
             }
         }

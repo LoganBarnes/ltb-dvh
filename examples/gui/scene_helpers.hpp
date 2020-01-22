@@ -23,43 +23,14 @@
 #pragma once
 
 // project
-#include "dvh_view_2d.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "sdf_view.hpp"
+#include "ltb/gvs/core/scene.hpp"
+#include "ltb/sdf/box.hpp"
+#include "ltb/sdf/geometry.hpp"
 
 namespace ltb::example {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
-public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
-
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
-
-    void resize(const Magnum::Vector2i& viewport) override;
-
-    void handleKeyPressEvent(KeyEvent& event) override;
-    void handleKeyReleaseEvent(KeyEvent& event) override;
-
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
-    // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
-
-    // Views
-    SdfView   sdf_view_;
-    DvhView2d dvh_view_2d_;
-
-    View* current_view_ = &dvh_view_2d_;
-};
+auto add_boxes_to_scene(gvs::Scene*                                    scene,
+                        std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
+                        gvs::SceneId const&                            parent = gvs::nil_id()) -> gvs::SceneId;
 
 } // namespace ltb::example

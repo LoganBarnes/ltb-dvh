@@ -24,15 +24,14 @@
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
-#include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
 #include "ltb/sdf/sdf.hpp"
 #include "ltb/util/container_utils.hpp"
+#include "scene_helpers.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
 #include <glm/gtx/string_cast.hpp>
-#include <imgui.h>
 
 using namespace Magnum;
 using namespace Platform;
@@ -65,7 +64,11 @@ void build_grids(dvh::DistanceVolumeHierarchy<2> const& dvh, gvs::Scene* scene, 
 } // namespace
 
 DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
-    : error_recorder_(std::move(error_recorder)), dvh_({-1, -2}, {1, 0}) {
+    : error_recorder_(std::move(error_recorder)), dvh_({-2, -3}, {2, 1}) {
+
+    additive_boxes_ = {
+        sdf::make_geometry(sdf::make_box<2>({2.5f, 1.2f}), {0.5f, -0.75f}),
+    };
 
     dvh_.add_volumes(additive_boxes_);
 
@@ -74,6 +77,14 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
     grid_root_    = scene_.add_item(gvs::SetReadableId("Grid"), gvs::SetPositions3d());
 
     build_grids(dvh_, &scene_, grid_root_);
+
+    auto squares_scene_id = add_boxes_to_scene(&scene_, additive_boxes_);
+
+    scene_.update_item(squares_scene_id,
+                       gvs::SetReadableId("Additive Boxes"),
+                       gvs::SetColoring(gvs::Coloring::UniformColor),
+                       gvs::SetShading(gvs::Shading::UniformColor),
+                       gvs::SetUniformColor({0.f, 0.f, 0.f}));
 }
 
 DvhView2d::~DvhView2d() = default;
