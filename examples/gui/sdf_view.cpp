@@ -238,9 +238,7 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
             find_closest(&distance_to_closest_geometry_,
                          glm::vec2(tangent_sphere_center_),
                          oriented_lines_,
-                         sdf::distance_to_line<2>);
-
-            // compare_geom(oriented_lines_, sdf::distance_to_oriented_line<2>);
+                         sdf::distance_to_oriented_line<>);
 
             update_tangent_sphere();
         }
@@ -254,8 +252,6 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
 
             line_to_closest_geometry_.start = tangent_sphere_center_;
             line_to_closest_geometry_.end   = tangent_sphere_center_ + glm::vec3(closest2, 0.f);
-
-            // compare_geom(oriented_lines_, sdf::distance_to_oriented_line<2>);
 
             update_sdf_line();
         }

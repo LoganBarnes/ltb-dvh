@@ -25,6 +25,7 @@
 // external
 #include <glm/geometric.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/exterior_product.hpp>
 
 // standard
 #include <stdexcept>
@@ -59,9 +60,10 @@ auto distance_to_line(glm::vec<L, T> const& point, Line<L, T> const& line) -> T 
     return glm::length(vector_to_line(point, line));
 }
 
-template <int L, typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-auto distance_to_oriented_line(glm::vec<L, T> const& /*point*/, Line<L, T> const & /*line*/) -> T {
-    throw std::runtime_error("not implemented");
+template <typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+auto distance_to_oriented_line(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
+    bool inside = (glm::cross(point - line.start, line.end - line.start) < 0.f);
+    return distance_to_line(point, line) * (inside ? T(-1) : T(1));
 }
 
 } // namespace ltb::sdf
