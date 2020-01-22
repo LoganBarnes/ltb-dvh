@@ -23,40 +23,55 @@
 #pragma once
 
 // project
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "sdf_view.hpp"
+#include "ltb/dvh/distance_volume_hierarchy.hpp"
+#include "ltb/gvs/display/gui/error_alert.hpp"
+#include "ltb/gvs/display/local_scene.hpp"
+#include "view.hpp"
+#include <ltb/gvs/display/gui/error_alert_recorder.hpp>
 
 namespace ltb::example {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
+class SdfView : public View {
 public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+    explicit SdfView(gvs::ErrorAlertRecorder error_recorder);
+    ~SdfView() override;
 
-private:
-    void update() override;
     void render(const gvs::CameraPackage& camera_package) const override;
     void configure_gui() override;
 
     void resize(const Magnum::Vector2i& viewport) override;
 
-    void handleKeyReleaseEvent(KeyEvent& event) override;
+    void handleKeyReleaseEvent(Magnum::Platform::Application::KeyEvent& event) override;
 
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
+    void handleMousePressEvent(Magnum::Platform::Application::MouseEvent& event) override;
+    void handleMouseReleaseEvent(Magnum::Platform::Application::MouseEvent& event) override;
+    void handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent& event) override;
 
     // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
+    gvs::ErrorAlertRecorder error_recorder_;
 
-    // Views
-    SdfView sdf_view_;
+    // Geometry
+    struct Line {
+        glm::vec3 start;
+        glm::vec3 end;
+    };
+    std::vector<Line> lines_;
 
-    View* current_view_ = &sdf_view_;
+    struct OrientedLine {
+        glm::vec3 start;
+        glm::vec3 end;
+    };
+    std::vector<OrientedLine> oriented_lines_;
+
+    // Scene
+    gvs::LocalScene scene_;
+    gvs::SceneId    geometry_root_scene_id_  = gvs::nil_id();
+    gvs::SceneId    lines_scene_id_          = gvs::nil_id();
+    gvs::SceneId    oriented_lines_scene_id_ = gvs::nil_id();
+
+    // Interaction
+    glm::vec3    tangent_sphere_center_ = glm::vec3(0.f);
+    gvs::SceneId tanget_sphere_scene_id_ = gvs::nil_id();
 };
 
 } // namespace ltb::example

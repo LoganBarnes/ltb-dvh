@@ -23,8 +23,10 @@
 #pragma once
 
 // project
+#include "ltb/dvh/distance_volume_hierarchy.hpp"
+#include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "sdf_view.hpp"
+#include "ltb/gvs/display/local_scene.hpp"
 
 namespace ltb::example {
 
@@ -51,12 +53,26 @@ private:
     std::string gl_renderer_str_;
 
     // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
+    gvs::ErrorAlert error_alert_;
 
-    // Views
-    SdfView sdf_view_;
+    // Scene
+    gvs::LocalScene                              scene_;
+    gvs::SceneId                                 indices_root_ = gvs::nil_id();
+    std::unordered_map<glm::ivec2, gvs::SceneId> index_scene_ids_;
+    gvs::SceneId                                 grid_root_ = gvs::nil_id();
 
-    View* current_view_ = &sdf_view_;
+    // DVH
+    dvh::DistanceVolumeHierarchy<2> dvh_;
+
+    // Input
+    enum class MouseMode {
+        None,
+        LineDrag,
+        AddPoints,
+        SetOffset,
+    };
+
+    MouseMode mouse_mode_ = MouseMode::None;
 };
 
 } // namespace ltb::example

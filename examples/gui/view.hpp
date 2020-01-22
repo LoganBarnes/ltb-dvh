@@ -23,40 +23,34 @@
 #pragma once
 
 // project
+#include "ltb/dvh/distance_volume_hierarchy.hpp"
+#include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "sdf_view.hpp"
+#include "ltb/gvs/display/local_scene.hpp"
 
 namespace ltb::example {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
+class View {
 public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+    virtual ~View() = default;
 
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
+    // updates
+    virtual auto update() -> void{};
+    virtual auto render(gvs::CameraPackage const& /*camera_package*/) const -> void{};
+    virtual auto configure_gui() -> void{};
 
-    void resize(const Magnum::Vector2i& viewport) override;
+    virtual auto resize(const Magnum::Vector2i & /*viewport*/) -> void{};
 
-    void handleKeyReleaseEvent(KeyEvent& event) override;
+    // keyboard input
+    virtual auto handleKeyPressEvent(Magnum::Platform::Application::KeyEvent & /*event*/) -> void {}
+    virtual auto handleKeyReleaseEvent(Magnum::Platform::Application::KeyEvent & /*event*/) -> void {}
+    virtual auto handleTextInputEvent(Magnum::Platform::Application::TextInputEvent & /*event*/) -> void {}
 
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
-    // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
-
-    // Views
-    SdfView sdf_view_;
-
-    View* current_view_ = &sdf_view_;
+    // mouse input
+    virtual auto handleMousePressEvent(Magnum::Platform::Application::MouseEvent & /*event*/) -> void {}
+    virtual auto handleMouseReleaseEvent(Magnum::Platform::Application::MouseEvent & /*event*/) -> void {}
+    virtual auto handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent & /*event*/) -> void {}
+    virtual auto handleMouseScrollEvent(Magnum::Platform::Application::MouseScrollEvent & /*event*/) -> void {}
 };
 
 } // namespace ltb::example
