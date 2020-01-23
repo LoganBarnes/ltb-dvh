@@ -130,8 +130,6 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
         }
     }
 
-    // TODO: Fix this logic
-
     for (const auto& [level_index, cells] : potential_cells) {
 
         auto& level            = levels_[level_index];

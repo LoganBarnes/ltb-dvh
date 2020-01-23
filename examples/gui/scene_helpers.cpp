@@ -21,10 +21,14 @@
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
 #include "scene_helpers.hpp"
-#include <ltb/sdf/sdf.hpp>
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
+#include "ltb/sdf/sdf.hpp"
+
+// external
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace ltb::example {
 
@@ -40,9 +44,9 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
         auto d = square.geometry.dimensions / 2.f;
 
         auto p0 = glm::vec2(-d.x, -d.y) + square.translation;
-        auto p1 = glm::vec2(d.x, -d.y) + square.translation;
-        auto p2 = glm::vec2(d.x, d.y) + square.translation;
-        auto p3 = glm::vec2(-d.x, d.y) + square.translation;
+        auto p1 = glm::vec2(+d.x, -d.y) + square.translation;
+        auto p2 = glm::vec2(+d.x, +d.y) + square.translation;
+        auto p3 = glm::vec2(-d.x, +d.y) + square.translation;
 
         lines.emplace_back(p0.x, p0.y, z_offset);
         lines.emplace_back(p1.x, p1.y, z_offset);
@@ -58,6 +62,29 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
     }
 
     return scene->add_item(gvs::SetPositions3d(lines), gvs::SetLines(), gvs::SetParent(parent));
+}
+
+auto add_boxes_to_scene(gvs::Scene*                                    scene,
+                        std::vector<sdf::Geometry<sdf::Box, 3>> const& boxes,
+                        gvs::SceneId const&                            parent) -> gvs::SceneId {
+
+    auto root = scene->add_item(gvs::SetPositions3d(), gvs::SetParent(parent));
+
+    for (auto const& box : boxes) {
+        auto transform = glm::translate(glm::identity<glm::mat4>(), box.translation)
+            * glm::scale(glm::identity<glm::mat4>(), box.geometry.dimensions * 0.5f);
+
+        const auto* transform_data = glm::value_ptr(transform);
+        gvs::mat4   tmp_conversion;
+
+        for (auto i = 0u; i < 16u; ++i) {
+            tmp_conversion[i] = transform_data[i];
+        }
+
+        scene->add_item(gvs::SetPrimitive(gvs::Cube{}), gvs::SetTransformation(tmp_conversion), gvs::SetParent(root));
+    }
+
+    return root;
 }
 
 auto add_lines_to_scene(gvs::Scene*                             scene,

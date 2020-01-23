@@ -34,6 +34,10 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
                         std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
                         gvs::SceneId const&                            parent = gvs::nil_id()) -> gvs::SceneId;
 
+auto add_boxes_to_scene(gvs::Scene*                                    scene,
+                        std::vector<sdf::Geometry<sdf::Box, 3>> const& boxes,
+                        gvs::SceneId const&                            parent = gvs::nil_id()) -> gvs::SceneId;
+
 auto add_lines_to_scene(gvs::Scene*                             scene,
                         std::vector<sdf::OrientedLine<>> const& oriented_lines,
                         gvs::SceneId const&                     parent = gvs::nil_id()) -> gvs::SceneId;

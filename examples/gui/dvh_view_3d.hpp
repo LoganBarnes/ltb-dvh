@@ -23,6 +23,7 @@
 #pragma once
 
 // project
+#include "ltb/dvh/distance_volume_hierarchy.hpp"
 #include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
 #include "ltb/sdf/sdf.hpp"
@@ -30,11 +31,12 @@
 
 namespace ltb::example {
 
-class SdfView : public View {
+class DvhView3d : public View {
 public:
-    explicit SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
-    ~SdfView() override;
+    explicit DvhView3d(gvs::ErrorAlertRecorder error_recorder);
+    ~DvhView3d() override;
 
+    void update() override;
     void render(const gvs::CameraPackage& camera_package) const override;
     void configure_gui() override;
 
@@ -48,38 +50,23 @@ public:
     void handleMouseMoveEvent(Magnum::Platform::Application::MouseMoveEvent& event) override;
 
 private:
-    // Camera
-    gvs::OrbitCameraPackage& camera_package_;
-
     // Errors
     gvs::ErrorAlertRecorder error_recorder_;
 
-    // Geometry
-    std::vector<sdf::Line<3>>               lines_;
-    std::vector<sdf::OrientedLine<>>        oriented_lines_;
-    std::vector<sdf::Geometry<sdf::Box, 2>> squares_;
+    // DVH
+    float                           base_resolution_ = 0.1f;
+    dvh::DistanceVolumeHierarchy<3> dvh_;
 
-    std::vector<sdf::Geometry<sdf::Box, 3>> boxes_;
+    // Additive Volumes
+    std::vector<sdf::Geometry<sdf::Box, 3>> additive_boxes_;
 
     // Scene
-    gvs::LocalScene scene_;
-    gvs::SceneId    geometry_root_scene_id_ = gvs::nil_id();
+    std::unique_ptr<gvs::LocalScene>      scene_;
+    gvs::SceneId                          dvh_root_scene_id_ = gvs::nil_id();
+    std::unordered_map<int, gvs::SceneId> index_scene_ids_;
 
-    // Interaction
-    glm::vec3 tangent_sphere_center_ = glm::vec3(0.f);
-
-    float        distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
-    gvs::SceneId tangent_sphere_scene_id_      = gvs::nil_id();
-
-    sdf::Line<3> line_to_closest_geometry_{};
-    gvs::SceneId sdf_line_scene_id_ = gvs::nil_id();
-
-    // Inputs
-    bool ctrl_down_  = false;
-    bool shift_down_ = false;
-
-    void update_tangent_sphere();
-    void update_sdf_line();
+    void reset_volumes();
+    void reset_scene();
 };
 
 } // namespace ltb::example

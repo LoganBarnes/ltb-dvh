@@ -36,6 +36,8 @@
 using namespace Magnum;
 using namespace Platform;
 
+//#define THREE_DEE
+
 namespace ltb::example {
 
 namespace {
@@ -102,14 +104,25 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
     : camera_package_(camera_package), error_recorder_(std::move(error_recorder)) {
 
     oriented_lines_ = {
+#ifndef THREE_DEE
         {{2.f, -2.f}, {2.f, 2.f}},
         {{2.f, 2.f}, {-1.f, 3.f}},
         {{-1.f, 3.f}, {-3.f, -1.f}},
+#endif
     };
 
     squares_ = {
+#ifndef THREE_DEE
         sdf::make_geometry(sdf::make_box<2>({2.4f, 1.3f}), {0.5f, -2.f}),
         sdf::make_geometry(sdf::make_box<2>({1.2f, 4.f}), {-3.f, 0.5f}),
+#endif
+    };
+
+    boxes_ = {
+#ifdef THREE_DEE
+        sdf::make_geometry(sdf::make_box<3>({2.4f, 1.3f, 0.9f}), {0.5f, -2.f, 0.f}),
+        sdf::make_geometry(sdf::make_box<3>({1.2f, 4.f, 3.1f}), {-3.f, 0.5f, 1.f}),
+#endif
     };
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
@@ -132,11 +145,16 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
     scene_.update_item(oriented_lines_scene_id, gvs::SetReadableId("Oriented Lines"));
 
     auto squares_scene_id = add_boxes_to_scene(&scene_, squares_, geometry_root_scene_id_);
-
     scene_.update_item(squares_scene_id,
                        gvs::SetReadableId("Squares"),
                        gvs::SetColoring(gvs::Coloring::UniformColor),
                        gvs::SetShading(gvs::Shading::UniformColor));
+
+    auto boxes_scene_id = add_boxes_to_scene(&scene_, boxes_, geometry_root_scene_id_);
+    scene_.update_item(boxes_scene_id,
+                       gvs::SetReadableId("Boxes"),
+                       gvs::SetColoring(gvs::Coloring::UniformColor),
+                       gvs::SetShading(gvs::Shading::Lambertian));
 
     // SDF Feedback
     tangent_sphere_scene_id_ = scene_.add_item(gvs::SetReadableId("Tangent Sphere"),
@@ -242,6 +260,7 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
             find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, lines_);
             find_closest(&distance_to_closest_geometry_, tangent_sphere_center_2d, oriented_lines_);
             find_closest(&distance_to_closest_geometry_, tangent_sphere_center_2d, squares_);
+            find_closest(&distance_to_closest_geometry_, tangent_sphere_center_, boxes_);
 
             update_tangent_sphere();
         }
@@ -252,6 +271,7 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
             find_closest(&closest, tangent_sphere_center_, lines_);
             find_closest(&closest, tangent_sphere_center_2d, oriented_lines_);
             find_closest(&closest, tangent_sphere_center_2d, squares_);
+            find_closest(&closest, tangent_sphere_center_, boxes_);
 
             line_to_closest_geometry_.start = tangent_sphere_center_;
             line_to_closest_geometry_.end   = tangent_sphere_center_ + closest;

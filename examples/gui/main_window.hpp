@@ -24,6 +24,7 @@
 
 // project
 #include "dvh_view_2d.hpp"
+#include "dvh_view_3d.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
 #include "sdf_view.hpp"
 
@@ -58,6 +59,7 @@ private:
     // Views
     SdfView   sdf_view_;
     DvhView2d dvh_view_2d_;
+    DvhView3d dvh_view_3d_;
 
     View* current_view_ = &dvh_view_2d_;
 };

@@ -48,7 +48,8 @@ MainWindow::MainWindow(const Arguments& arguments)
       gl_renderer_str_(GL::Context::current().rendererString()),
       error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")),
       sdf_view_(camera_package_, error_alert_),
-      dvh_view_2d_(error_alert_) {
+      dvh_view_2d_(error_alert_),
+      dvh_view_3d_(error_alert_) {
 
     camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
     camera_package_.update_object();
@@ -117,7 +118,7 @@ void MainWindow::handleKeyPressEvent(KeyEvent& event) {
             return;
 
         case KeyEvent::Key::Three:
-            //current_view_ = &dvh_view_3d_;
+            current_view_ = &dvh_view_3d_;
             return;
 
         default:
