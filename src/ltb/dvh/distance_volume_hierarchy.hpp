@@ -77,17 +77,12 @@ public:
     template <typename Geom>
     void add_volumes(std::vector<Geom> const& geometries);
 
-    auto levels() const { return levels_; }
-    auto lowest_level() const { return levels_.begin()->first; }
+    auto               levels() const -> std::map<int, SparseDvhLevel> const&;
+    [[nodiscard]] auto lowest_level() const -> int;
 
-    auto base_resolution() const { return base_resolution_; }
+    auto base_resolution() const -> T;
 
-    auto level_resolution(int level_index) const {
-        if (level_index == 0) {
-            throw std::invalid_argument("level_index cannot be zero");
-        }
-        return base_resolution_ * (level_index > 0 ? T(level_index) : T(1) / level_index);
-    }
+    auto level_resolution(int level_index) const -> T;
 
 private:
     T   base_resolution_;
@@ -95,12 +90,6 @@ private:
 
     std::map<int, SparseDvhLevel> levels_;
 };
-
-template <int L, typename T>
-DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int max_level)
-    : base_resolution_(base_resolution), max_level_(max_level) {
-    clear();
-}
 
 template <int L, typename T>
 template <typename Geom>

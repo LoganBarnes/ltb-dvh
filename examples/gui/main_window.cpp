@@ -42,7 +42,7 @@ MainWindow::MainWindow(const Arguments& arguments)
     : gvs::ImGuiMagnumApplication(arguments,
                                   Configuration{}
                                       .setTitle("Distance Volume Hierarchy")
-                                      .setSize({1280, 720})
+                                      .setSize({1600, 900})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
       gl_version_str_(GL::Context::current().versionString()),
       gl_renderer_str_(GL::Context::current().rendererString()),

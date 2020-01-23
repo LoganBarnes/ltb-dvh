@@ -25,6 +25,39 @@
 // external
 #include <doctest/doctest.h>
 
+namespace ltb::dvh {
+
+template <int L, typename T>
+DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int max_level)
+    : base_resolution_(base_resolution), max_level_(max_level) {
+    clear();
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::levels() const -> std::map<int, SparseDvhLevel> const& {
+    return levels_;
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::lowest_level() const -> int {
+    return levels_.begin()->first;
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::base_resolution() const -> T {
+    return base_resolution_;
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::level_resolution(int level_index) const -> T {
+    if (level_index == 0) {
+        throw std::invalid_argument("level_index cannot be zero");
+    }
+    return base_resolution_ * (level_index > 0 ? T(level_index) : T(1) / level_index);
+}
+
+} // namespace ltb::dvh
+
 // test compilation
 template class ltb::dvh::DistanceVolumeHierarchy<2, float>;
 template class ltb::dvh::DistanceVolumeHierarchy<3, float>;

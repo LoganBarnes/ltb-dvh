@@ -54,7 +54,7 @@ private:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // DVH
-    float                           base_resolution_ = 0.7f;
+    float                           base_resolution_ = 0.2f;
     dvh::DistanceVolumeHierarchy<2> dvh_;
 
     // Additive Volumes
