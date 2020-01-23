@@ -32,7 +32,6 @@
 
 // external
 #include <Magnum/GL/Context.h>
-#include <glm/gtx/string_cast.hpp>
 
 using namespace Magnum;
 using namespace Platform;
@@ -93,6 +92,7 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder) : error_recorder_(s
 
     additive_boxes_ = {
         sdf::make_geometry(sdf::make_box<2>({2.5f, 1.2f}), {0.5f, -0.75f}),
+        sdf::make_geometry(sdf::make_box<2>({0.25f, 1.1f}), {3.7f, 2.f}),
     };
 
     dvh_.add_volumes(additive_boxes_);
