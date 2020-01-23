@@ -22,52 +22,20 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// project
-#include "aabb.hpp"
-
 // external
 #include <glm/geometric.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtx/exterior_product.hpp>
 
 namespace ltb::sdf {
 
 template <int L, typename T = float>
-struct Line {
-    glm::vec<L, T> start;
-    glm::vec<L, T> end;
+struct AABB {
+    glm::vec<L, T> min_point = glm::vec<L, T>(std::numeric_limits<T>::infinity());
+    glm::vec<L, T> max_point = glm::vec<L, T>(-std::numeric_limits<T>::infinity());
 };
 
 template <int L, typename T = float>
-auto make_line(glm::vec<L, T> start, glm::vec<L, T> end) -> Line<L, T> {
-    return {start, end};
-}
-
-template <int L, typename T = float>
-auto vector_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> glm::vec<L, T> {
-    auto start_to_point = point - line.start;
-    auto start_to_end   = line.end - line.start;
-
-    auto t_along_infinite_line = glm::dot(start_to_point, start_to_end) / glm::dot(start_to_end, start_to_end);
-    auto t_dist_along_segment  = glm::clamp(t_along_infinite_line, T(0), T(1));
-
-    return start_to_end * t_dist_along_segment - start_to_point;
-}
-
-template <int L, typename T = float>
-auto distance_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> T {
-    return glm::length(vector_to_geometry(point, line));
-}
-
-template <typename T = float>
-auto distance_to_oriented_geometry(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
-    T negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
-    return distance_to_geometry(point, line) * negative_if_inside;
-}
-
-template <int L, typename T = float>
-auto bounding_box(Line<L, T> const& line) -> AABB<L, T> {
-    return {glm::min(line.start, line.end), glm::max(line.start, line.end)};
+auto expand(AABB<L, T> const& aabb, glm::vec<L, T> const& point) -> AABB<L, T> {
+    return {glm::min(aabb.min_point, point), glm::max(aabb.max_point, point)};
 }
 
 } // namespace ltb::sdf

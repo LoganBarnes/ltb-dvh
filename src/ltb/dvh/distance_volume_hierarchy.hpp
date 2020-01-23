@@ -29,8 +29,11 @@
 #include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 // standard
+#include <iostream>
+#include <map>
 #include <unordered_map>
 
 namespace ltb::dvh {
@@ -55,49 +58,66 @@ void iterate(glm::ivec3 const& min_index, glm::ivec3 const& max_index, Func cons
     }
 }
 
-template <int N, typename T = float>
+template <int L, typename T = float>
 class DistanceVolumeHierarchy {
 public:
-    DistanceVolumeHierarchy(glm::vec<N, int> field_min_index, glm::vec<N, int> field_max_index);
+    using SparseDvhLevel = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
+
+    explicit DistanceVolumeHierarchy(T base_resolution, int max_level = std::numeric_limits<int>::max());
 
     template <typename Geom>
     void add_volumes(std::vector<Geom> const& geometries);
 
-    auto min_index() const -> glm::vec<N, int> const& { return min_index_; };
-    auto max_index() const -> glm::vec<N, int> const& { return max_index_; };
-    auto sparse_distance_field() const -> std::unordered_map<glm::vec<N, int>, glm::vec<N + 1, T>> const& {
-        return sparse_distance_field_;
+    auto levels() const { return levels_; }
+    auto lowest_level() const { return levels_.begin()->first; }
+
+    auto base_resolution() const { return base_resolution_; }
+
+    auto level_resolution(int level_index) const {
+        if (level_index == 0) {
+            throw std::invalid_argument("level_index cannot be zero");
+        }
+        return base_resolution_ * (level_index > 0 ? T(level_index) : T(1) / level_index);
     }
 
 private:
-    glm::vec<N, int>                                         min_index_;
-    glm::vec<N, int>                                         max_index_;
-    std::unordered_map<glm::vec<N, int>, glm::vec<N + 1, T>> sparse_distance_field_;
+    T   base_resolution_;
+    int max_level_;
+
+    std::map<int, SparseDvhLevel> levels_;
 };
 
-template <int N, typename T>
-DistanceVolumeHierarchy<N, T>::DistanceVolumeHierarchy(glm::vec<N, int> field_min_index,
-                                                       glm::vec<N, int> field_max_index)
-    : min_index_(field_min_index), max_index_(field_max_index) {
+template <int L, typename T>
+DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int max_level)
+    : base_resolution_(base_resolution), max_level_(max_level) {
 
-    sparse_distance_field_.emplace(glm::vec<N, int>(-1), glm::vec<N + 1, T>(std::numeric_limits<T>::infinity()));
-    sparse_distance_field_.emplace(glm::vec<N, int>(0), glm::vec<N + 1, T>(0));
+    // Insert the empty base level
+    levels_.emplace(1, SparseDvhLevel{});
 }
 
-template <int N, typename T>
+template <int L, typename T>
 template <typename Geom>
-void DistanceVolumeHierarchy<N, T>::add_volumes(std::vector<Geom> const& geometries) {
-    iterate(min_index_, max_index_, [this, &geometries](glm::vec<N, int> const& index) {
-        auto const p = glm::vec<N, T>(index) + glm::vec<N, T>(0.5);
+void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometries) {
+    for (auto const& geometry : geometries) {
+        auto aabb = sdf::bounding_box(geometry);
 
-        for (auto const& geometry : geometries) {
+        auto min_cell = glm::vec<L, int>(glm::floor(aabb.min_point / base_resolution_));
+        auto max_cell = glm::vec<L, int>(glm::ceil(aabb.max_point / base_resolution_));
+
+        auto  level_index     = 1;
+        auto& level           = levels_.at(level_index);
+        auto  half_resolution = base_resolution_ * level_index * T(0.5);
+
+        iterate(min_cell, max_cell, [&geometry, &level, half_resolution](auto const& index) {
+            auto const p = glm::vec<L, T>(index);
+
             auto dist = sdf::distance_to_geometry(p, geometry);
 
-            if (dist <= glm::length(glm::vec<N, T>(0.5))) {
-                sparse_distance_field_.insert_or_assign(index, glm::vec<N + 1, T>(p, dist));
+            if (dist <= glm::length(glm::vec<L, T>(half_resolution))) {
+                level.insert_or_assign(index, glm::vec<L + 1, T>(p, dist));
             }
-        }
-    });
+        });
+    }
 }
 
 } // namespace ltb::dvh

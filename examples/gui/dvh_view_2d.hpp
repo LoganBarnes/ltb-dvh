@@ -60,10 +60,9 @@ private:
     std::vector<sdf::Geometry<sdf::Box, 2>> additive_boxes_;
 
     // Scene
-    gvs::LocalScene                              scene_;
-    gvs::SceneId                                 indices_root_ = gvs::nil_id();
-    std::unordered_map<glm::ivec2, gvs::SceneId> index_scene_ids_;
-    gvs::SceneId                                 grid_root_ = gvs::nil_id();
+    gvs::LocalScene                       scene_;
+    gvs::SceneId                          dvh_root_scene_id_ = gvs::nil_id();
+    std::unordered_map<int, gvs::SceneId> index_scene_ids_;
 };
 
 } // namespace ltb::example

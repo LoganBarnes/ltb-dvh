@@ -41,17 +41,17 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
         auto p2 = glm::vec2(d.x, d.y) + square.translation;
         auto p3 = glm::vec2(-d.x, d.y) + square.translation;
 
-        lines.emplace_back(p0.x, p0.y, 0.f);
-        lines.emplace_back(p1.x, p1.y, 0.f);
+        lines.emplace_back(p0.x, p0.y, 0.001f);
+        lines.emplace_back(p1.x, p1.y, 0.001f);
 
-        lines.emplace_back(p1.x, p1.y, 0.f);
-        lines.emplace_back(p2.x, p2.y, 0.f);
+        lines.emplace_back(p1.x, p1.y, 0.001f);
+        lines.emplace_back(p2.x, p2.y, 0.001f);
 
-        lines.emplace_back(p2.x, p2.y, 0.f);
-        lines.emplace_back(p3.x, p3.y, 0.f);
+        lines.emplace_back(p2.x, p2.y, 0.001f);
+        lines.emplace_back(p3.x, p3.y, 0.001f);
 
-        lines.emplace_back(p3.x, p3.y, 0.f);
-        lines.emplace_back(p0.x, p0.y, 0.f);
+        lines.emplace_back(p3.x, p3.y, 0.001f);
+        lines.emplace_back(p0.x, p0.y, 0.001f);
     }
 
     return scene->add_item(gvs::SetPositions3d(lines),

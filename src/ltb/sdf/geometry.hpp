@@ -35,6 +35,7 @@ struct Geometry {
     explicit Geometry(G<L, T> geom, glm::vec<L, T> trans = {}) : geometry(geom), translation(trans) {}
 
     auto to_geometry_space(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
+    auto from_geometry_space(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
 };
 
 template <template <int, typename> class G, int L, typename T = float>
@@ -47,20 +48,25 @@ auto Geometry<G, L, T>::to_geometry_space(glm::vec<L, T> const& point) const -> 
     return point - translation;
 }
 
-template <template <int, typename> class G,
-          int L,
-          typename T = float,
-          typename   = std::enable_if_t<std::is_floating_point_v<T>>>
+template <template <int, typename> class G, int L, typename T>
+auto Geometry<G, L, T>::from_geometry_space(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
+    return point + translation;
+}
+
+template <template <int, typename> class G, int L, typename T = float>
 auto vector_to_geometry(glm::vec<L, T> const& point, Geometry<G, L, T> const& geometry) -> glm::vec<L, T> {
     return vector_to_geometry(geometry.to_geometry_space(point), geometry.geometry);
 }
 
-template <template <int, typename> class G,
-          int L,
-          typename T = float,
-          typename   = std::enable_if_t<std::is_floating_point_v<T>>>
+template <template <int, typename> class G, int L, typename T = float>
 auto distance_to_geometry(glm::vec<L, T> const& point, Geometry<G, L, T> const& geometry) {
     return distance_to_geometry(geometry.to_geometry_space(point), geometry.geometry);
+}
+
+template <template <int, typename> class G, int L, typename T = float>
+auto bounding_box(Geometry<G, L, T> const& geometry) -> AABB<L, T> {
+    auto aabb = bounding_box(geometry.geometry);
+    return {geometry.from_geometry_space(aabb.min_point), geometry.from_geometry_space(aabb.max_point)};
 }
 
 } // namespace ltb::sdf

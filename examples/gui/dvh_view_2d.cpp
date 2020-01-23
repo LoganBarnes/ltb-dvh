@@ -27,6 +27,7 @@
 #include "ltb/gvs/display/gui/scene_gui.hpp"
 #include "ltb/sdf/sdf.hpp"
 #include "ltb/util/container_utils.hpp"
+#include "ltb/util/result.hpp"
 #include "scene_helpers.hpp"
 
 // external
@@ -39,32 +40,56 @@ using namespace Platform;
 namespace ltb::example {
 namespace {
 
-void build_grids(dvh::DistanceVolumeHierarchy<2> const& dvh, gvs::Scene* scene, gvs::SceneId const& parent) {
+void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec2 const& cell, float resolution) {
 
-    std::vector<glm::vec3> lines;
+    auto half_resolution = resolution * 0.5f;
 
-    for (int i = dvh.min_index().x; i <= dvh.max_index().x + 1; ++i) {
-        lines.emplace_back(i, dvh.min_index().y, 0.f);
-        lines.emplace_back(i, dvh.max_index().y + 1, 0.f);
-    }
-    for (int i = dvh.min_index().y; i <= dvh.max_index().y + 1; ++i) {
-        lines.emplace_back(dvh.min_index().x, i, 0.f);
-        lines.emplace_back(dvh.max_index().x + 1, i, 0.f);
-    }
+    auto const bottom_left  = glm::vec2(cell) + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = glm::vec2(cell) + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = glm::vec2(cell) + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = glm::vec2(cell) + glm::vec2(-half_resolution, +half_resolution);
 
-    scene->add_item(gvs::SetPositions3d(lines),
-                    gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
-                    gvs::SetReadableId("Base"),
-                    gvs::SetColoring(gvs::Coloring::UniformColor),
-                    gvs::SetShading(gvs::Shading::UniformColor),
-                    gvs::SetUniformColor({0.6f, 0.6f, 0.6f}),
-                    gvs::SetParent(parent));
+    lines->emplace_back(bottom_left.x, bottom_left.y, 1e-4f);
+    lines->emplace_back(bottom_right.x, bottom_right.y, 1e-4f);
+
+    lines->emplace_back(bottom_right.x, bottom_right.y, 1e-4f);
+    lines->emplace_back(upper_right.x, upper_right.y, 1e-4f);
+
+    lines->emplace_back(upper_right.x, upper_right.y, 1e-4f);
+    lines->emplace_back(upper_left.x, upper_left.y, 1e-4f);
+
+    lines->emplace_back(upper_left.x, upper_left.y, 1e-4f);
+    lines->emplace_back(bottom_left.x, bottom_left.y, 1e-4f);
+}
+
+void mesh_cell(std::vector<glm::vec3>* triangles,
+               std::vector<glm::vec3>* colors,
+               glm::ivec2 const&       cell,
+               float                   resolution,
+               float                   distance_value) {
+
+    auto half_resolution = resolution * 0.5f;
+
+    auto const bottom_left  = glm::vec2(cell) + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = glm::vec2(cell) + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = glm::vec2(cell) + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = glm::vec2(cell) + glm::vec2(-half_resolution, +half_resolution);
+
+    triangles->emplace_back(bottom_left.x, bottom_left.y, 0.f);
+    triangles->emplace_back(bottom_right.x, bottom_right.y, 0.f);
+    triangles->emplace_back(upper_right.x, upper_right.y, 0.f);
+
+    triangles->emplace_back(bottom_left.x, bottom_left.y, 0.f);
+    triangles->emplace_back(upper_right.x, upper_right.y, 0.f);
+    triangles->emplace_back(upper_left.x, upper_left.y, 0.f);
+
+    auto color = (std::isinf(distance_value) ? glm::vec3(0.3f) : glm::vec3{0.6f, 0.3f, 0.f});
+    colors->insert(colors->end(), 6, color);
 }
 
 } // namespace
 
-DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
-    : error_recorder_(std::move(error_recorder)), dvh_({-2, -3}, {2, 1}) {
+DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder) : error_recorder_(std::move(error_recorder)), dvh_(1.f) {
 
     additive_boxes_ = {
         sdf::make_geometry(sdf::make_box<2>({2.5f, 1.2f}), {0.5f, -0.75f}),
@@ -73,10 +98,7 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
     dvh_.add_volumes(additive_boxes_);
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
-    indices_root_ = scene_.add_item(gvs::SetReadableId("Volume"), gvs::SetPositions3d());
-    grid_root_    = scene_.add_item(gvs::SetReadableId("Grid"), gvs::SetPositions3d());
-
-    build_grids(dvh_, &scene_, grid_root_);
+    dvh_root_scene_id_ = scene_.add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
 
     auto squares_scene_id = add_boxes_to_scene(&scene_, additive_boxes_);
 
@@ -84,34 +106,61 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
                        gvs::SetReadableId("Additive Boxes"),
                        gvs::SetColoring(gvs::Coloring::UniformColor),
                        gvs::SetShading(gvs::Shading::UniformColor),
-                       gvs::SetUniformColor({0.f, 0.f, 0.f}));
+                       gvs::SetUniformColor({1.f, 1.f, 1.f}));
 }
 
 DvhView2d::~DvhView2d() = default;
 
 void DvhView2d::update() {
 
-    for (auto const& [index, dir_and_dist] : dvh_.sparse_distance_field()) {
+    for (auto const& [level_index, sparse_distance_field] : dvh_.levels()) {
 
-        if (!util::has_key(index_scene_ids_, index)) {
-            auto xy = glm::vec2(index);
-            index_scene_ids_.emplace(index,
-                                     scene_.add_item(gvs::SetPositions3d({{xy.x, xy.y, 0.f},
-                                                                          {xy.x + 1.f, xy.y, 0.f},
-                                                                          {xy.x + 1.f, xy.y + 1.f, 0.f},
-                                                                          {xy.x, xy.y + 1.f, 0.f}}),
-                                                     gvs::SetGeometryFormat(gvs::GeometryFormat::TriangleFan),
-                                                     gvs::SetReadableId(glm::to_string(index)),
-                                                     gvs::SetParent(indices_root_),
-                                                     gvs::SetColoring(gvs::Coloring::UniformColor),
-                                                     gvs::SetShading(gvs::Shading::UniformColor),
-                                                     gvs::SetUniformColor(gvs::default_uniform_color)));
+        if (!util::has_key(index_scene_ids_, level_index)) {
+            index_scene_ids_.emplace(level_index,
+                                     scene_.add_item(gvs::SetReadableId("Level " + std::to_string(level_index)),
+                                                     gvs::SetPositions3d(),
+                                                     gvs::SetParent(dvh_root_scene_id_)));
+
+            auto const& level_scene_id = index_scene_ids_.at(level_index);
+
+            scene_.add_item(gvs::SetReadableId("Cell Values"),
+                            gvs::SetPositions3d(),
+                            gvs::SetTriangles(),
+                            gvs::SetShading(gvs::Shading::UniformColor),
+                            gvs::SetColoring(gvs::Coloring::VertexColors),
+                            gvs::SetParent(level_scene_id));
+
+            scene_.add_item(gvs::SetReadableId("Cell Borders"),
+                            gvs::SetPositions3d(),
+                            gvs::SetLines(),
+                            gvs::SetShading(gvs::Shading::UniformColor),
+                            gvs::SetColoring(gvs::Coloring::UniformColor),
+                            gvs::SetUniformColor({0.f, 0.f, 0.f}),
+                            gvs::SetParent(level_scene_id));
         }
 
-        auto color = (std::isinf(dir_and_dist.z) ? gvs::vec3{0.5f, 0.5f, 0.5f} : gvs::default_uniform_color);
+        auto resolution = dvh_.level_resolution(level_index);
 
-        auto const& scene_id = index_scene_ids_.at(index);
-        scene_.update_item(scene_id, gvs::SetUniformColor(color));
+        auto const& scene_id = index_scene_ids_.at(level_index);
+
+        std::vector<gvs::SceneId> children;
+        scene_.get_item_info(scene_id, gvs::GetChildren(&children));
+        assert(children.size() == 2ul);
+
+        std::vector<glm::vec3> positions;
+        std::vector<glm::vec3> colors;
+
+        for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
+            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist.z);
+        }
+        scene_.update_item(children[0], gvs::SetPositions3d(positions), gvs::SetVertexColors3d(colors));
+
+        positions.clear();
+        for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
+            util::ignore(dir_and_dist);
+            mesh_cell_border(&positions, cell, resolution);
+        }
+        scene_.update_item(children[1], gvs::SetPositions3d(positions), gvs::SetLines());
     }
 }
 
