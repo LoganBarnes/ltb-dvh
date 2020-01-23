@@ -61,7 +61,7 @@ private:
     DvhView2d dvh_view_2d_;
     DvhView3d dvh_view_3d_;
 
-    View* current_view_ = &dvh_view_2d_;
+    View* current_view_ = &dvh_view_3d_;
 };
 
 } // namespace ltb::example
