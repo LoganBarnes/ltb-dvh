@@ -181,6 +181,13 @@ void DvhView2d::render(const gvs::CameraPackage& camera_package) const {
 }
 
 void DvhView2d::configure_gui() {
+
+    if (ImGui::DragFloat("Base Resolution", &base_resolution_, 0.05f, 0.1f, 2.f)) {
+        reset_volumes();
+    }
+
+    ImGui::Separator();
+
     gvs::configure_gui(&scene_);
 }
 
@@ -199,8 +206,13 @@ auto DvhView2d::handleMouseReleaseEvent(Application::MouseEvent & /*event*/) -> 
 auto DvhView2d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) -> void {}
 
 void DvhView2d::reset_volumes() {
+    dvh_ = dvh::DistanceVolumeHierarchy<2>{base_resolution_};
+
     dvh_.add_volumes(additive_lines_);
-    dvh_.add_volumes(additive_boxes_);
+
+    for (auto const& box : additive_boxes_) {
+        dvh_.add_volumes(decltype(additive_boxes_){box});
+    }
 }
 
 } // namespace ltb::example

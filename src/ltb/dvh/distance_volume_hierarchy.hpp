@@ -69,6 +69,11 @@ public:
         levels_ = {{1, SparseDvhLevel{}}}; // The empty base level
     }
 
+    /**
+     * @brief All volumes added at the same time will be grouped together under the same root
+     * @tparam Geom
+     * @param geometries
+     */
     template <typename Geom>
     void add_volumes(std::vector<Geom> const& geometries);
 
