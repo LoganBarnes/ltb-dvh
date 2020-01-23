@@ -21,11 +21,14 @@
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
 #include "scene_helpers.hpp"
+#include <ltb/sdf/sdf.hpp>
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
 
 namespace ltb::example {
+
+constexpr auto z_offset = 1e-3f;
 
 auto add_boxes_to_scene(gvs::Scene*                                    scene,
                         std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
@@ -41,21 +44,41 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
         auto p2 = glm::vec2(d.x, d.y) + square.translation;
         auto p3 = glm::vec2(-d.x, d.y) + square.translation;
 
-        lines.emplace_back(p0.x, p0.y, 0.001f);
-        lines.emplace_back(p1.x, p1.y, 0.001f);
+        lines.emplace_back(p0.x, p0.y, z_offset);
+        lines.emplace_back(p1.x, p1.y, z_offset);
 
-        lines.emplace_back(p1.x, p1.y, 0.001f);
-        lines.emplace_back(p2.x, p2.y, 0.001f);
+        lines.emplace_back(p1.x, p1.y, z_offset);
+        lines.emplace_back(p2.x, p2.y, z_offset);
 
-        lines.emplace_back(p2.x, p2.y, 0.001f);
-        lines.emplace_back(p3.x, p3.y, 0.001f);
+        lines.emplace_back(p2.x, p2.y, z_offset);
+        lines.emplace_back(p3.x, p3.y, z_offset);
 
-        lines.emplace_back(p3.x, p3.y, 0.001f);
-        lines.emplace_back(p0.x, p0.y, 0.001f);
+        lines.emplace_back(p3.x, p3.y, z_offset);
+        lines.emplace_back(p0.x, p0.y, z_offset);
     }
 
+    return scene->add_item(gvs::SetPositions3d(lines), gvs::SetLines(), gvs::SetParent(parent));
+}
+
+auto add_lines_to_scene(gvs::Scene*                             scene,
+                        std::vector<sdf::OrientedLine<>> const& oriented_lines,
+                        gvs::SceneId const&                     parent) -> gvs::SceneId {
+
+    std::vector<glm::vec3> lines;
+    std::vector<glm::vec2> tex_coords;
+    for (const auto& line : oriented_lines) {
+        lines.emplace_back(line.start.x, line.start.y, z_offset);
+        lines.emplace_back(line.end.x, line.end.y, z_offset);
+        tex_coords.emplace_back(0.f, 0.f);
+        tex_coords.emplace_back(1.f, 1.f);
+    }
+    assert(lines.size() == tex_coords.size());
+
     return scene->add_item(gvs::SetPositions3d(lines),
-                           gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
+                           gvs::SetTextureCoordinates3d(tex_coords),
+                           gvs::SetLines(),
+                           gvs::SetColoring(gvs::Coloring::TextureCoordinates),
+                           gvs::SetShading(gvs::Shading::UniformColor),
                            gvs::SetParent(parent));
 }
 

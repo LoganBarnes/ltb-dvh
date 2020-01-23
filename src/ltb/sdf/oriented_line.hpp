@@ -22,8 +22,36 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "box.hpp"
-#include "geometry.hpp"
+// project
 #include "line.hpp"
-#include "offset.hpp"
-#include "oriented_line.hpp"
+
+namespace ltb::sdf {
+
+template <typename T = float>
+struct OrientedLine {
+    glm::vec<2, T> start;
+    glm::vec<2, T> end;
+};
+
+template <typename T = float>
+auto make_oriented_line(glm::vec<2, T> start, glm::vec<2, T> end) -> OrientedLine<T> {
+    return {start, end};
+}
+
+template <typename T = float>
+auto vector_to_geometry(glm::vec<2, T> const& point, OrientedLine<T> const& line) -> glm::vec<2, T> {
+    return vector_to_geometry(point, make_line(line.start, line.end));
+}
+
+template <typename T = float>
+auto distance_to_geometry(glm::vec<2, T> const& point, OrientedLine<T> const& line) -> T {
+    T negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
+    return distance_to_geometry(point, make_line(line.start, line.end)) * negative_if_inside;
+}
+
+template <typename T = float>
+auto bounding_box(OrientedLine<T> const& line) -> AABB<2, T> {
+    return bounding_box(make_line(line.start, line.end));
+}
+
+} // namespace ltb::sdf

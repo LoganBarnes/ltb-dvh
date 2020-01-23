@@ -56,7 +56,7 @@ private:
 
     // Geometry
     std::vector<sdf::Line<3>>               lines_;
-    std::vector<sdf::Line<2>>               oriented_lines_;
+    std::vector<sdf::OrientedLine<>>        oriented_lines_;
     std::vector<sdf::Geometry<sdf::Box, 2>> squares_;
 
     // Scene

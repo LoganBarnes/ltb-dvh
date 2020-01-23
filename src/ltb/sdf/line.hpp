@@ -59,12 +59,6 @@ auto distance_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -
     return glm::length(vector_to_geometry(point, line));
 }
 
-template <typename T = float>
-auto distance_to_oriented_geometry(glm::vec<2, T> const& point, Line<2, T> const& line) -> T {
-    T negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
-    return distance_to_geometry(point, line) * negative_if_inside;
-}
-
 template <int L, typename T = float>
 auto bounding_box(Line<L, T> const& line) -> AABB<L, T> {
     return {glm::min(line.start, line.end), glm::max(line.start, line.end)};

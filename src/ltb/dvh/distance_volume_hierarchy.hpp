@@ -65,6 +65,10 @@ public:
 
     explicit DistanceVolumeHierarchy(T base_resolution, int max_level = std::numeric_limits<int>::max());
 
+    void clear() {
+        levels_ = {{1, SparseDvhLevel{}}}; // The empty base level
+    }
+
     template <typename Geom>
     void add_volumes(std::vector<Geom> const& geometries);
 
@@ -90,9 +94,7 @@ private:
 template <int L, typename T>
 DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int max_level)
     : base_resolution_(base_resolution), max_level_(max_level) {
-
-    // Insert the empty base level
-    levels_.emplace(1, SparseDvhLevel{});
+    clear();
 }
 
 template <int L, typename T>
@@ -106,10 +108,11 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
 
         auto  level_index     = 1;
         auto& level           = levels_.at(level_index);
-        auto  half_resolution = base_resolution_ * level_index * T(0.5);
+        auto  resolution      = level_resolution(level_index);
+        auto  half_resolution = resolution * level_index * T(0.5);
 
-        iterate(min_cell, max_cell, [&geometry, &level, half_resolution](auto const& index) {
-            auto const p = glm::vec<L, T>(index);
+        iterate(min_cell, max_cell, [&geometry, &level, &resolution, &half_resolution](auto const& index) {
+            auto const p = glm::vec<L, T>(index) * resolution;
 
             auto dist = sdf::distance_to_geometry(p, geometry);
 

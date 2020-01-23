@@ -50,7 +50,7 @@ MainWindow::MainWindow(const Arguments& arguments)
       sdf_view_(camera_package_, error_alert_),
       dvh_view_2d_(error_alert_) {
 
-    camera_package_.zoom_object.translate({0.f, 0.f, 5.f});
+    camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
     camera_package_.update_object();
 }
 

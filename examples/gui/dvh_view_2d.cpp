@@ -43,10 +43,10 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec2 const& cell, flo
 
     auto half_resolution = resolution * 0.5f;
 
-    auto const bottom_left  = glm::vec2(cell) + glm::vec2(-half_resolution, -half_resolution);
-    auto const bottom_right = glm::vec2(cell) + glm::vec2(+half_resolution, -half_resolution);
-    auto const upper_right  = glm::vec2(cell) + glm::vec2(+half_resolution, +half_resolution);
-    auto const upper_left   = glm::vec2(cell) + glm::vec2(-half_resolution, +half_resolution);
+    auto const bottom_left  = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, +half_resolution);
 
     lines->emplace_back(bottom_left.x, bottom_left.y, 1e-4f);
     lines->emplace_back(bottom_right.x, bottom_right.y, 1e-4f);
@@ -69,10 +69,10 @@ void mesh_cell(std::vector<glm::vec3>* triangles,
 
     auto half_resolution = resolution * 0.5f;
 
-    auto const bottom_left  = glm::vec2(cell) + glm::vec2(-half_resolution, -half_resolution);
-    auto const bottom_right = glm::vec2(cell) + glm::vec2(+half_resolution, -half_resolution);
-    auto const upper_right  = glm::vec2(cell) + glm::vec2(+half_resolution, +half_resolution);
-    auto const upper_left   = glm::vec2(cell) + glm::vec2(-half_resolution, +half_resolution);
+    auto const bottom_left  = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, +half_resolution);
 
     triangles->emplace_back(bottom_left.x, bottom_left.y, 0.f);
     triangles->emplace_back(bottom_right.x, bottom_right.y, 0.f);
@@ -88,17 +88,27 @@ void mesh_cell(std::vector<glm::vec3>* triangles,
 
 } // namespace
 
-DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder) : error_recorder_(std::move(error_recorder)), dvh_(1.f) {
+DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
+    : error_recorder_(std::move(error_recorder)), dvh_(base_resolution_) {
+
+    additive_lines_ = {
+        sdf::make_oriented_line({0.f, 2.f}, {-2.f, 4.f}),
+        sdf::make_oriented_line({-2.f, 4.f}, {-2.51f, 3.f}),
+        sdf::make_oriented_line({-2.51f, 3.f}, {-4.f, 2.9f}),
+        sdf::make_oriented_line({-4.f, 2.9f}, {-3.f, 0.001f}),
+        sdf::make_oriented_line({-3.f, 0.001f}, {0.f, 2.f}),
+    };
 
     additive_boxes_ = {
         sdf::make_geometry(sdf::make_box<2>({2.5f, 1.2f}), {0.5f, -0.75f}),
         sdf::make_geometry(sdf::make_box<2>({0.25f, 1.1f}), {3.7f, 2.f}),
     };
 
-    dvh_.add_volumes(additive_boxes_);
-
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     dvh_root_scene_id_ = scene_.add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
+
+    auto oriented_lines_scene_id = add_lines_to_scene(&scene_, additive_lines_);
+    scene_.update_item(oriented_lines_scene_id, gvs::SetReadableId("Additive Lines"));
 
     auto squares_scene_id = add_boxes_to_scene(&scene_, additive_boxes_);
 
@@ -107,6 +117,8 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder) : error_recorder_(s
                        gvs::SetColoring(gvs::Coloring::UniformColor),
                        gvs::SetShading(gvs::Shading::UniformColor),
                        gvs::SetUniformColor({1.f, 1.f, 1.f}));
+
+    reset_volumes();
 }
 
 DvhView2d::~DvhView2d() = default;
@@ -185,5 +197,10 @@ auto DvhView2d::handleMousePressEvent(Application::MouseEvent & /*event*/) -> vo
 auto DvhView2d::handleMouseReleaseEvent(Application::MouseEvent & /*event*/) -> void {}
 
 auto DvhView2d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) -> void {}
+
+void DvhView2d::reset_volumes() {
+    dvh_.add_volumes(additive_lines_);
+    dvh_.add_volumes(additive_boxes_);
+}
 
 } // namespace ltb::example

@@ -128,23 +128,8 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
                     gvs::SetShading(gvs::Shading::UniformColor),
                     gvs::SetParent(geometry_root_scene_id_));
 
-    lines.clear();
-    std::vector<glm::vec2> tex_coords;
-    for (const auto& line : oriented_lines_) {
-        lines.emplace_back(line.start.x, line.start.y, 0.f);
-        lines.emplace_back(line.end.x, line.end.y, 0.f);
-        tex_coords.emplace_back(0.f, 0.f);
-        tex_coords.emplace_back(1.f, 1.f);
-    }
-    assert(lines.size() == tex_coords.size());
-
-    scene_.add_item(gvs::SetReadableId("Oriented Lines"),
-                    gvs::SetPositions3d(lines),
-                    gvs::SetTextureCoordinates3d(tex_coords),
-                    gvs::SetGeometryFormat(gvs::GeometryFormat::Lines),
-                    gvs::SetColoring(gvs::Coloring::TextureCoordinates),
-                    gvs::SetShading(gvs::Shading::UniformColor),
-                    gvs::SetParent(geometry_root_scene_id_));
+    auto oriented_lines_scene_id = add_lines_to_scene(&scene_, oriented_lines_, geometry_root_scene_id_);
+    scene_.update_item(oriented_lines_scene_id, gvs::SetReadableId("Oriented Lines"));
 
     auto squares_scene_id = add_boxes_to_scene(&scene_, squares_, geometry_root_scene_id_);
 
