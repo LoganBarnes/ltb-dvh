@@ -25,6 +25,8 @@
 // external
 #include <doctest/doctest.h>
 
+//#define DEBUG_PRINT
+
 namespace ltb::dvh {
 
 namespace {
@@ -74,23 +76,65 @@ auto DistanceVolumeHierarchy<L, T>::base_resolution() const -> T {
 
 template <int L, typename T>
 auto DistanceVolumeHierarchy<L, T>::resolution(int level_index) const -> T {
-    if (level_index == 0) {
-        throw std::invalid_argument("level_index cannot be zero");
-    }
-    return base_resolution_ * (level_index > 0 ? T(level_index) : T(1) / level_index);
+    return base_resolution_ * std::pow<T>(2, level_index);
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchy<L, T>::gather_potential_cells(glm::vec<L, int> const& min_cell,
+auto DistanceVolumeHierarchy<L, T>::gather_potential_cells(int                     level_index,
+                                                           glm::vec<L, int> const& min_cell,
                                                            glm::vec<L, int> const& max_cell) -> LevelMap<CellSet> {
+#ifdef DEBUG_PRINT
+    std::cout << "min_cell: " << glm::to_string(min_cell) << std::endl;
+    std::cout << "max_cell: " << glm::to_string(max_cell) << std::endl;
+#endif
 
     LevelMap<CellSet> level_cells;
 
     auto cells = CellSet{};
+#ifdef DEBUG_PRINT
+    std::cout << "Level: " << std::to_string(level_index) << std::endl;
+#endif
 
-    iterate(min_cell, max_cell, [&cells](auto const& cell) { cells.emplace(cell); });
+    iterate(min_cell, max_cell, [&cells](auto const& cell) {
+#ifdef DEBUG_PRINT
+        std::cout << "\t" << glm::to_string(cell) << std::endl;
+#endif
+        cells.emplace(cell);
+    });
 
-    level_cells.emplace(1, std::move(cells));
+    auto num_cells = cells.size();
+    level_cells.emplace(level_index, std::move(cells));
+
+    for (int li = level_index + 1; li < max_level_; ++li) {
+        auto const& smaller_cells          = level_cells.at(li - 1);
+        auto const  lower_level_resolution = resolution(li - 1);
+
+        cells.clear();
+        auto const level_resolution = resolution(li);
+#ifdef DEBUG_PRINT
+        std::cout << "Level: " << std::to_string(li) << std::endl;
+        std::cout << "Lower Res: " << std::to_string(lower_level_resolution) << std::endl;
+        std::cout << "      Res: " << std::to_string(level_resolution) << std::endl;
+#endif
+
+        for (const auto& cell : smaller_cells) {
+            auto world_pos   = cell_center(cell, lower_level_resolution);
+            auto bigger_cell = get_cell(world_pos, level_resolution);
+#ifdef DEBUG_PRINT
+            std::cout << "\t" << glm::to_string(bigger_cell) << " from " << glm::to_string(cell) << std::endl;
+#endif
+            cells.emplace(bigger_cell);
+        }
+
+        if (num_cells == cells.size()) {
+            break;
+        }
+
+        num_cells = cells.size();
+        level_cells.emplace(li, std::move(cells));
+    }
+
+    // TODO: Handle smaller indices
 
     return level_cells;
 }

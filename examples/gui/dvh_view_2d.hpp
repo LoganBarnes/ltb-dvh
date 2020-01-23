@@ -54,7 +54,7 @@ private:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // DVH
-    float                           base_resolution_ = 0.2f;
+    float                           base_resolution_ = 0.1f;
     dvh::DistanceVolumeHierarchy<2> dvh_;
 
     // Additive Volumes
@@ -62,11 +62,12 @@ private:
     std::vector<sdf::Geometry<sdf::Box, 2>> additive_boxes_;
 
     // Scene
-    gvs::LocalScene                       scene_;
+    std::unique_ptr<gvs::LocalScene>      scene_;
     gvs::SceneId                          dvh_root_scene_id_ = gvs::nil_id();
     std::unordered_map<int, gvs::SceneId> index_scene_ids_;
 
     void reset_volumes();
+    void reset_scene();
 };
 
 } // namespace ltb::example
