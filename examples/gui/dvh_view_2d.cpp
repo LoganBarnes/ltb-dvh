@@ -43,10 +43,12 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec2 const& cell, flo
 
     auto half_resolution = resolution * 0.5f;
 
-    auto const bottom_left  = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, -half_resolution);
-    auto const bottom_right = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, -half_resolution);
-    auto const upper_right  = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, +half_resolution);
-    auto const upper_left   = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, +half_resolution);
+    auto center = dvh::cell_center(cell, resolution);
+
+    auto const bottom_left  = center + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = center + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = center + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = center + glm::vec2(-half_resolution, +half_resolution);
 
     lines->emplace_back(bottom_left.x, bottom_left.y, 1e-4f);
     lines->emplace_back(bottom_right.x, bottom_right.y, 1e-4f);
@@ -69,10 +71,12 @@ void mesh_cell(std::vector<glm::vec3>* triangles,
 
     auto half_resolution = resolution * 0.5f;
 
-    auto const bottom_left  = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, -half_resolution);
-    auto const bottom_right = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, -half_resolution);
-    auto const upper_right  = glm::vec2(cell) * resolution + glm::vec2(+half_resolution, +half_resolution);
-    auto const upper_left   = glm::vec2(cell) * resolution + glm::vec2(-half_resolution, +half_resolution);
+    auto center = dvh::cell_center(cell, resolution);
+
+    auto const bottom_left  = center + glm::vec2(-half_resolution, -half_resolution);
+    auto const bottom_right = center + glm::vec2(+half_resolution, -half_resolution);
+    auto const upper_right  = center + glm::vec2(+half_resolution, +half_resolution);
+    auto const upper_left   = center + glm::vec2(-half_resolution, +half_resolution);
 
     triangles->emplace_back(bottom_left.x, bottom_left.y, 0.f);
     triangles->emplace_back(bottom_right.x, bottom_right.y, 0.f);
@@ -82,7 +86,18 @@ void mesh_cell(std::vector<glm::vec3>* triangles,
     triangles->emplace_back(upper_right.x, upper_right.y, 0.f);
     triangles->emplace_back(upper_left.x, upper_left.y, 0.f);
 
-    auto color = (std::isinf(distance_value) ? glm::vec3(0.3f) : glm::vec3{0.6f, 0.3f, 0.f});
+    glm::vec3 color;
+
+    if (std::isinf(distance_value)) {
+        color = glm::vec3(0.3f); // gray if no volume is represented
+
+    } else if (distance_value > 0.f) {
+        color = {0.6f, 0.3f, 0.f}; // orange if the volume is outside the part
+
+    } else {
+        color = {0.0f, 0.6f, 0.6f}; // blue if the volume is inside or on the part
+    }
+
     colors->insert(colors->end(), 6, color);
 }
 
@@ -151,7 +166,7 @@ void DvhView2d::update() {
                             gvs::SetParent(level_scene_id));
         }
 
-        auto resolution = dvh_.level_resolution(level_index);
+        auto resolution = dvh_.resolution(level_index);
 
         auto const& scene_id = index_scene_ids_.at(level_index);
 

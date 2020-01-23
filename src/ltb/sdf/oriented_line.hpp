@@ -45,8 +45,9 @@ auto vector_to_geometry(glm::vec<2, T> const& point, OrientedLine<T> const& line
 
 template <typename T = float>
 auto distance_to_geometry(glm::vec<2, T> const& point, OrientedLine<T> const& line) -> T {
-    T negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
-    return distance_to_geometry(point, make_line(line.start, line.end)) * negative_if_inside;
+    T    negative_if_inside = glm::sign(glm::cross(point - line.start, line.end - line.start));
+    auto abs_distance       = distance_to_geometry(point, make_line(line.start, line.end));
+    return abs_distance * negative_if_inside + abs_distance * (T(1) - std::abs(negative_if_inside));
 }
 
 template <typename T = float>

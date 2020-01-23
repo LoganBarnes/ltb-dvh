@@ -46,6 +46,7 @@ message(STATUS "LTB_SOURCE_FILES ${LTB_SOURCE_FILES}")
 ltb_add_library(ltb_sdf 17 ${LTB_SOURCE_FILES})
 ltb_link_libraries(ltb_sdf
         PUBLIC
+        ltb_util
         glm
         doctest
         )

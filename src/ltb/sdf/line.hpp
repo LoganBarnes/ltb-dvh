@@ -51,7 +51,7 @@ auto vector_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> 
     auto t_along_infinite_line = glm::dot(start_to_point, start_to_end) / glm::dot(start_to_end, start_to_end);
     auto t_dist_along_segment  = glm::clamp(t_along_infinite_line, T(0), T(1));
 
-    return start_to_end * t_dist_along_segment - start_to_point;
+    return glm::mix(line.start, line.end, t_dist_along_segment) - point;
 }
 
 template <int L, typename T = float>

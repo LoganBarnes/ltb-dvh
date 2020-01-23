@@ -27,6 +27,30 @@
 
 namespace ltb::dvh {
 
+namespace {
+
+template <typename Func>
+void iterate(glm::ivec2 const& min_index, glm::ivec2 const& max_index, Func const& func) {
+    for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+        for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+            func(glm::ivec2{xi, yi});
+        }
+    }
+}
+
+template <typename Func>
+void iterate(glm::ivec3 const& min_index, glm::ivec3 const& max_index, Func const& func) {
+    for (int zi = min_index.z; zi <= max_index.z; ++zi) {
+        for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+            for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+                func(glm::ivec3{xi, yi, zi});
+            }
+        }
+    }
+}
+
+} // namespace
+
 template <int L, typename T>
 DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int max_level)
     : base_resolution_(base_resolution), max_level_(max_level) {
@@ -34,7 +58,7 @@ DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int ma
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchy<L, T>::levels() const -> std::map<int, SparseDvhLevel> const& {
+auto DistanceVolumeHierarchy<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
     return levels_;
 }
 
@@ -49,17 +73,32 @@ auto DistanceVolumeHierarchy<L, T>::base_resolution() const -> T {
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchy<L, T>::level_resolution(int level_index) const -> T {
+auto DistanceVolumeHierarchy<L, T>::resolution(int level_index) const -> T {
     if (level_index == 0) {
         throw std::invalid_argument("level_index cannot be zero");
     }
     return base_resolution_ * (level_index > 0 ? T(level_index) : T(1) / level_index);
 }
 
-} // namespace ltb::dvh
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::gather_potential_cells(glm::vec<L, int> const& min_cell,
+                                                           glm::vec<L, int> const& max_cell) -> LevelMap<CellSet> {
+
+    LevelMap<CellSet> level_cells;
+
+    auto cells = CellSet{};
+
+    iterate(min_cell, max_cell, [&cells](auto const& cell) { cells.emplace(cell); });
+
+    level_cells.emplace(1, std::move(cells));
+
+    return level_cells;
+}
 
 // test compilation
-template class ltb::dvh::DistanceVolumeHierarchy<2, float>;
-template class ltb::dvh::DistanceVolumeHierarchy<3, float>;
-template class ltb::dvh::DistanceVolumeHierarchy<2, double>;
-template class ltb::dvh::DistanceVolumeHierarchy<3, double>;
+template class DistanceVolumeHierarchy<2, float>;
+template class DistanceVolumeHierarchy<3, float>;
+template class DistanceVolumeHierarchy<2, double>;
+template class DistanceVolumeHierarchy<3, double>;
+
+} // namespace ltb::dvh

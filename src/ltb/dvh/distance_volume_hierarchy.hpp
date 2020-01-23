@@ -26,6 +26,7 @@
 #include <ltb/sdf/sdf.hpp>
 
 // external
+#include "ltb/util/comparison_utils.hpp"
 #include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -34,39 +35,27 @@
 // standard
 #include <iostream>
 #include <map>
-#include <unordered_map>
+#include <unordered_set>
 
 namespace ltb::dvh {
 
-template <typename Func>
-void iterate(glm::ivec2 const& min_index, glm::ivec2 const& max_index, Func const& func) {
-    for (int yi = min_index.y; yi <= max_index.y; ++yi) {
-        for (int xi = min_index.x; xi <= max_index.x; ++xi) {
-            func(glm::ivec2{xi, yi});
-        }
-    }
-}
-
-template <typename Func>
-void iterate(glm::ivec3 const& min_index, glm::ivec3 const& max_index, Func const& func) {
-    for (int zi = min_index.z; zi <= max_index.z; ++zi) {
-        for (int yi = min_index.y; yi <= max_index.y; ++yi) {
-            for (int xi = min_index.x; xi <= max_index.x; ++xi) {
-                func(glm::ivec3{xi, yi, zi});
-            }
-        }
-    }
+template <int L, typename T>
+auto cell_center(glm::vec<L, int> const& cell, const T& resolution) -> glm::vec<L, T> {
+    return (glm::vec<L, T>(cell) + T(0.5)) * resolution;
 }
 
 template <int L, typename T = float>
 class DistanceVolumeHierarchy {
 public:
-    using SparseDvhLevel = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
+    using SparseVolumeMap = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
+    using CellSet         = std::unordered_set<glm::vec<L, int>>;
+    template <typename V>
+    using LevelMap = std::map<int, V>;
 
     explicit DistanceVolumeHierarchy(T base_resolution, int max_level = std::numeric_limits<int>::max());
 
     void clear() {
-        levels_ = {{1, SparseDvhLevel{}}}; // The empty base level
+        levels_ = {{1, SparseVolumeMap{}}}; // The empty base level
     }
 
     /**
@@ -77,43 +66,73 @@ public:
     template <typename Geom>
     void add_volumes(std::vector<Geom> const& geometries);
 
-    auto               levels() const -> std::map<int, SparseDvhLevel> const&;
+    auto               levels() const -> LevelMap<SparseVolumeMap> const&;
     [[nodiscard]] auto lowest_level() const -> int;
 
     auto base_resolution() const -> T;
 
-    auto level_resolution(int level_index) const -> T;
+    auto resolution(int level_index) const -> T;
 
 private:
     T   base_resolution_;
     int max_level_;
 
-    std::map<int, SparseDvhLevel> levels_;
+    LevelMap<SparseVolumeMap> levels_;
+
+    auto gather_potential_cells(glm::vec<L, int> const& min_cell, glm::vec<L, int> const& max_cell)
+        -> LevelMap<CellSet>;
 };
 
 template <int L, typename T>
 template <typename Geom>
 void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometries) {
+    LevelMap<CellSet> potential_cells;
+
     for (auto const& geometry : geometries) {
         auto aabb = sdf::bounding_box(geometry);
 
-        auto min_cell = glm::vec<L, int>(glm::floor(aabb.min_point / base_resolution_));
-        auto max_cell = glm::vec<L, int>(glm::ceil(aabb.max_point / base_resolution_));
+        auto min_cell = glm::vec<L, int>(glm::floor((aabb.min_point - base_resolution_) / base_resolution_));
+        auto max_cell = glm::vec<L, int>(glm::ceil((aabb.max_point + base_resolution_) / base_resolution_));
 
-        auto  level_index     = 1;
-        auto& level           = levels_.at(level_index);
-        auto  resolution      = level_resolution(level_index);
-        auto  half_resolution = resolution * level_index * T(0.5);
+        auto level_cells = gather_potential_cells(min_cell, max_cell);
 
-        iterate(min_cell, max_cell, [&geometry, &level, &resolution, &half_resolution](auto const& index) {
-            auto const p = glm::vec<L, T>(index) * resolution;
+        for (auto& [level_index, cells] : level_cells) {
+            potential_cells[level_index].insert(std::move_iterator(cells.begin()), std::move_iterator(cells.end()));
+        }
+    }
 
-            auto dist = sdf::distance_to_geometry(p, geometry);
+    // TODO: Fix this logic
 
-            if (dist <= glm::length(glm::vec<L, T>(half_resolution))) {
-                level.insert_or_assign(index, glm::vec<L + 1, T>(p, dist));
+    for (const auto& [level_index, cells] : potential_cells) {
+
+        auto& level            = levels_.at(level_index);
+        auto  level_resolution = resolution(level_index);
+        auto  half_resolution  = level_resolution * T(0.5);
+
+        for (const auto& cell : cells) {
+            // level.emplace(cell, glm::vec<L, T>(std::numeric_limits<T>::infinity()));
+
+            auto const p = dvh::cell_center(cell, level_resolution);
+
+            auto min_dist     = std::numeric_limits<T>::infinity();
+            auto min_abs_dist = min_dist;
+
+            for (auto const& geometry : geometries) {
+                auto dist     = sdf::distance_to_geometry(p, geometry);
+                auto abs_dist = std::abs(dist);
+
+                bool equal = util::almost_equal(abs_dist, min_abs_dist);
+
+                if ((!equal && abs_dist < min_abs_dist) || (equal && dist >= T(0))) {
+                    min_dist     = dist;
+                    min_abs_dist = abs_dist;
+                }
             }
-        });
+
+            if (min_dist <= glm::length(glm::vec<L, T>(half_resolution))) {
+                level.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+            }
+        }
     }
 }
 
