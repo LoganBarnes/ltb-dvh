@@ -30,12 +30,18 @@
 namespace ltb::dvh {
 
 template <>
-auto children_cells(glm::vec<2, int> const& cell) -> std::vector<glm::vec<2, int>> {
-    return {cell};
+auto children_cells(glm::ivec2 const& cell) -> std::vector<glm::ivec2> {
+    auto cell2 = cell * 2;
+    return {
+        cell2,
+        cell2 + glm::ivec2(1, 0),
+        cell2 + glm::ivec2(0, 1),
+        cell2 + glm::ivec2(1, 1),
+    };
 }
 
 template <>
-auto children_cells(glm::vec<3, int> const& cell) -> std::vector<glm::vec<3, int>> {
+auto children_cells(glm::ivec3 const& cell) -> std::vector<glm::ivec3> {
     return {cell};
 }
 
@@ -232,26 +238,26 @@ TEST_CASE("children_cells 2d around origin [dvh]") {
 
     CHECK(children_cells<2>({-1, 0})
           == std::vector<glm::ivec2>{
-              {-1, 0},
               {-2, 0},
-              {-1, 1},
+              {-1, 0},
               {-2, 1},
+              {-1, 1},
           });
 
     CHECK(children_cells<2>({-1, -1})
           == std::vector<glm::ivec2>{
-              {-1, -1},
-              {-2, -1},
-              {-1, -2},
               {-2, -2},
+              {-1, -2},
+              {-2, -1},
+              {-1, -1},
           });
 
     CHECK(children_cells<2>({0, -1})
           == std::vector<glm::ivec2>{
-              {0, -1},
-              {0, -1},
+              {0, -2},
               {1, -2},
-              {1, -2},
+              {0, -1},
+              {1, -1},
           });
 }
 
