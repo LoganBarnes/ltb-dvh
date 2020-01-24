@@ -42,6 +42,14 @@
 
 namespace ltb::dvh {
 
+template <int L>
+auto parent_cell(glm::vec<L, int> const& cell) -> glm::vec<L, int> {
+    return (cell + glm::min(glm::sign(cell), 0)) / 2; // TODO test this
+}
+
+template <int L>
+auto children_cells(glm::vec<L, int> const& cell) -> std::vector<glm::vec<L, int>>;
+
 template <int L, typename T>
 auto cell_center(glm::vec<L, int> const& cell, const T& resolution) -> glm::vec<L, T> {
     return (glm::vec<L, T>(cell) + glm::vec<L, T>(0.5)) * resolution;
@@ -130,38 +138,51 @@ void DistanceVolumeHierarchy<L, T>::add_volume(std::vector<Geom> const& geometri
 
     // ///////////////////////////////////////////////// //
 
-    auto level = roots_.begin()->first;
-    auto cells = roots_.begin()->second;
+    CellSet to_visit;
 
-    auto level_resolution = resolution(level);
-    auto half_resolution  = level_resolution * T(0.5);
-    auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
+    for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
 
-    auto& distance_field = levels_[level];
+        auto cells = std::move(to_visit);
+        to_visit.clear(); // Just to make sure
 
-    for (const auto& cell : cells) {
-        auto const p = dvh::cell_center(cell, level_resolution);
-
-        auto min_dist     = std::numeric_limits<T>::infinity();
-        auto min_abs_dist = min_dist;
-
-        for (auto const& geometry : geometries) {
-            auto dist     = sdf::distance_to_geometry(p, geometry);
-            auto abs_dist = std::abs(dist);
-
-            if (should_replace_with(min_abs_dist, abs_dist, dist)) {
-                min_dist     = dist;
-                min_abs_dist = abs_dist;
-            }
+        if (util::has_key(roots_, level)) {
+            auto const& root_cells = roots_.at(level);
+            cells.insert(root_cells.begin(), root_cells.end());
         }
 
-        if (!util::has_key(distance_field, cell)
-            || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
-            if (min_dist <= cell_corner_dist) {
-                distance_field.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+        auto level_resolution = resolution(level);
+        auto half_resolution  = level_resolution * T(0.5);
+        auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
 
-                if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
-                    // Visit children
+        auto& distance_field = levels_[level];
+
+        for (const auto& cell : cells) {
+            auto const p = dvh::cell_center(cell, level_resolution);
+
+            auto min_dist     = std::numeric_limits<T>::infinity();
+            auto min_abs_dist = min_dist;
+
+            for (auto const& geometry : geometries) {
+                auto dist     = sdf::distance_to_geometry(p, geometry);
+                auto abs_dist = std::abs(dist);
+
+                if (should_replace_with(min_abs_dist, abs_dist, dist)) {
+                    min_dist     = dist;
+                    min_abs_dist = abs_dist;
+                }
+            }
+
+            // TODO: double check this logic for alread existing cells with smaller distances
+            // (make sure children are still visited if necessary)
+            if (!util::has_key(distance_field, cell)
+                || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
+                if (min_dist <= cell_corner_dist) {
+                    distance_field.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+
+                    if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
+                        auto children = children_cells(cell);
+                        to_visit.insert(std::move_iterator(children.begin()), std::move_iterator(children.end()));
+                    }
                 }
             }
         }

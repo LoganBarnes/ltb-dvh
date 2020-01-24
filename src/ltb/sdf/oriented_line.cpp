@@ -29,11 +29,11 @@
 namespace {
 using namespace ltb;
 
-TEST_CASE_TEMPLATE("distance_to_oriented_line [sdf]", T, glm::vec2, glm::vec3) {
-    auto line  = sdf::make_oriented_line(T(-1), T(2));
-    auto point = T(0);
+TEST_CASE("distance_to_oriented_line [sdf]") {
+    [[maybe_unused]] auto line  = sdf::make_oriented_line({-1, -1}, {2, 2});
+    [[maybe_unused]] auto point = glm::vec2(0);
 
-    CHECK(sdf::distance_to_line(point, line) == doctest::Approx(0));
+    CHECK(sdf::distance_to_geometry(point, line) == doctest::Approx(0));
 }
 
 } // namespace

@@ -29,6 +29,16 @@
 
 namespace ltb::dvh {
 
+template <>
+auto children_cells(glm::vec<2, int> const& cell) -> std::vector<glm::vec<2, int>> {
+    return {cell};
+}
+
+template <>
+auto children_cells(glm::vec<3, int> const& cell) -> std::vector<glm::vec<3, int>> {
+    return {cell};
+}
+
 namespace {
 
 template <typename Func>
@@ -174,5 +184,75 @@ template class DistanceVolumeHierarchy<2, float>;
 template class DistanceVolumeHierarchy<3, float>;
 template class DistanceVolumeHierarchy<2, double>;
 template class DistanceVolumeHierarchy<3, double>;
+
+TEST_CASE("parent_cell 2d around origin [dvh]") {
+    CHECK(parent_cell<2>({0, 0}) == glm::ivec2{0, 0});
+    CHECK(parent_cell<2>({1, 0}) == glm::ivec2{0, 0});
+    CHECK(parent_cell<2>({0, 1}) == glm::ivec2{0, 0});
+    CHECK(parent_cell<2>({1, 1}) == glm::ivec2{0, 0});
+
+    CHECK(parent_cell<2>({-1, 0}) == glm::ivec2{-1, 0});
+    CHECK(parent_cell<2>({-2, 0}) == glm::ivec2{-1, 0});
+    CHECK(parent_cell<2>({-1, 1}) == glm::ivec2{-1, 0});
+    CHECK(parent_cell<2>({-2, 1}) == glm::ivec2{-1, 0});
+
+    CHECK(parent_cell<2>({-1, -1}) == glm::ivec2{-1, -1});
+    CHECK(parent_cell<2>({-2, -1}) == glm::ivec2{-1, -1});
+    CHECK(parent_cell<2>({-1, -2}) == glm::ivec2{-1, -1});
+    CHECK(parent_cell<2>({-2, -2}) == glm::ivec2{-1, -1});
+
+    CHECK(parent_cell<2>({0, -1}) == glm::ivec2{0, -1});
+    CHECK(parent_cell<2>({0, -1}) == glm::ivec2{0, -1});
+    CHECK(parent_cell<2>({1, -2}) == glm::ivec2{0, -1});
+    CHECK(parent_cell<2>({1, -2}) == glm::ivec2{0, -1});
+}
+
+TEST_CASE_TEMPLATE("parent_cell diagnals [dvh]", V, glm::ivec2, glm::ivec3) {
+    CHECK(parent_cell(V{0}) == V{0});
+    CHECK(parent_cell(V{1}) == V{0});
+    CHECK(parent_cell(V{2}) == V{1});
+    CHECK(parent_cell(V{3}) == V{1});
+    CHECK(parent_cell(V{4}) == V{2});
+
+    CHECK(parent_cell(V{-1}) == V{-1});
+    CHECK(parent_cell(V{-2}) == V{-1});
+    CHECK(parent_cell(V{-3}) == V{-2});
+    CHECK(parent_cell(V{-4}) == V{-2});
+    CHECK(parent_cell(V{-5}) == V{-3});
+}
+
+TEST_CASE("children_cells 2d around origin [dvh]") {
+    CHECK(children_cells<2>({0, 0})
+          == std::vector<glm::ivec2>{
+              {0, 0},
+              {1, 0},
+              {0, 1},
+              {1, 1},
+          });
+
+    CHECK(children_cells<2>({-1, 0})
+          == std::vector<glm::ivec2>{
+              {-1, 0},
+              {-2, 0},
+              {-1, 1},
+              {-2, 1},
+          });
+
+    CHECK(children_cells<2>({-1, -1})
+          == std::vector<glm::ivec2>{
+              {-1, -1},
+              {-2, -1},
+              {-1, -2},
+              {-2, -2},
+          });
+
+    CHECK(children_cells<2>({0, -1})
+          == std::vector<glm::ivec2>{
+              {0, -1},
+              {0, -1},
+              {1, -2},
+              {1, -2},
+          });
+}
 
 } // namespace ltb::dvh

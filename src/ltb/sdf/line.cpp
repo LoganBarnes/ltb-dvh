@@ -33,7 +33,7 @@ TEST_CASE_TEMPLATE("distance_to_line [sdf]", T, glm::vec2, glm::vec3, glm::vec3,
     auto line  = sdf::make_line(T(-1), T(2));
     auto point = T(0);
 
-    CHECK(sdf::distance_to_line(point, line) == doctest::Approx(0));
+    CHECK(sdf::distance_to_geometry(point, line) == doctest::Approx(0));
 }
 
 } // namespace
