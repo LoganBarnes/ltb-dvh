@@ -124,6 +124,38 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(back_upper_left);
     triangles->emplace_back(back_upper_right);
 
+    triangles->emplace_back(front_bottom_right);
+    triangles->emplace_back(back_bottom_right);
+    triangles->emplace_back(front_upper_right);
+
+    triangles->emplace_back(back_bottom_right);
+    triangles->emplace_back(back_upper_right);
+    triangles->emplace_back(front_upper_right);
+
+    triangles->emplace_back(back_bottom_left);
+    triangles->emplace_back(front_bottom_left);
+    triangles->emplace_back(back_upper_left);
+
+    triangles->emplace_back(front_bottom_left);
+    triangles->emplace_back(front_upper_left);
+    triangles->emplace_back(back_upper_left);
+
+    triangles->emplace_back(front_upper_left);
+    triangles->emplace_back(front_upper_right);
+    triangles->emplace_back(back_upper_left);
+
+    triangles->emplace_back(front_upper_right);
+    triangles->emplace_back(back_upper_right);
+    triangles->emplace_back(back_upper_left);
+
+    triangles->emplace_back(back_bottom_left);
+    triangles->emplace_back(back_bottom_right);
+    triangles->emplace_back(front_bottom_right);
+
+    triangles->emplace_back(back_bottom_left);
+    triangles->emplace_back(front_bottom_right);
+    triangles->emplace_back(front_bottom_left);
+
     glm::vec3 color;
 
     if (distance_value > 0.f) {
@@ -137,7 +169,7 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
         color *= std::pow<float>(0.8f, level);
     }
 
-    colors->insert(colors->end(), 12, color);
+    colors->insert(colors->end(), 36, color);
 }
 
 } // namespace
@@ -193,9 +225,12 @@ auto DvhView3d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) ->
 void DvhView3d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<3>{base_resolution_};
 
+    std::cout << "BOXES" << std::endl;
+
     for (auto const& box : additive_boxes_) {
         dvh_.add_volumes(decltype(additive_boxes_){box});
     }
+    std::cout << "DONE" << std::endl;
 }
 
 void DvhView3d::reset_scene() {
@@ -251,7 +286,7 @@ void DvhView3d::reset_scene() {
         std::vector<glm::vec3> colors;
 
         for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
-            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist.z, level_index);
+            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist[3], level_index);
         }
         scene_->update_item(children[0], gvs::SetPositions3d(positions), gvs::SetVertexColors3d(colors));
 

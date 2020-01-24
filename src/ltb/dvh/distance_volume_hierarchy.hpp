@@ -139,13 +139,7 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
 #endif
 
         for (const auto& cell : cells) {
-            bool should_stuff_be_printed = (level_index == 0 && cell == glm::vec<L, int>(0));
-
             auto const p = dvh::cell_center(cell, level_resolution);
-
-            if (should_stuff_be_printed) {
-                std::cout << "P: " << glm::to_string(p) << std::endl;
-            }
 
             auto min_dist     = std::numeric_limits<T>::infinity();
             auto min_abs_dist = min_dist;
@@ -154,26 +148,17 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
                 auto dist     = sdf::distance_to_geometry(p, geometry);
                 auto abs_dist = std::abs(dist);
 
-                if (should_stuff_be_printed) {
-                    std::cout << "\t\tdist: " << dist << std::endl;
-                }
                 if (should_replace_with(min_abs_dist, abs_dist, dist)) {
                     min_dist     = dist;
                     min_abs_dist = abs_dist;
                 }
             }
 
-            if (should_stuff_be_printed) {
-                std::cout << "\tmin_dist: " << min_dist << std::endl;
-            }
             if (!util::has_key(level, cell)
                 || should_replace_with(std::abs(level.at(cell)[L]), min_abs_dist, min_dist)) {
 #ifndef SHOW_ALL
                 if (min_dist <= glm::length(glm::vec<L, T>(half_resolution))) {
 #endif
-                    if (should_stuff_be_printed) {
-                        std::cout << "\tINSERTED" << std::endl;
-                    }
                     level.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
 #ifndef SHOW_ALL
                 }

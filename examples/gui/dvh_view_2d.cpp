@@ -227,7 +227,7 @@ void DvhView2d::reset_scene() {
         std::vector<glm::vec3> colors;
 
         for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
-            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist.z, level_index);
+            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist[2], level_index);
         }
         scene_->update_item(children[0], gvs::SetPositions3d(positions), gvs::SetVertexColors3d(colors));
 
