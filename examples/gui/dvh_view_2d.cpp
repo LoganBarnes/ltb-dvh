@@ -164,10 +164,10 @@ auto DvhView2d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) ->
 void DvhView2d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<2>{base_resolution_};
 
-    dvh_.add_volumes(additive_lines_);
+    dvh_.add_volume(additive_lines_);
 
     for (auto const& box : additive_boxes_) {
-        dvh_.add_volumes(decltype(additive_boxes_){box});
+        dvh_.add_volume(decltype(additive_boxes_){box});
     }
 }
 

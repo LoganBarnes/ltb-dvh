@@ -60,13 +60,13 @@ DistanceVolumeHierarchy<L, T>::DistanceVolumeHierarchy(T base_resolution, int ma
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchy<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
-    return levels_;
+void DistanceVolumeHierarchy<L, T>::clear() {
+    levels_.clear();
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchy<L, T>::lowest_level() const -> int {
-    return levels_.begin()->first;
+auto DistanceVolumeHierarchy<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
+    return levels_;
 }
 
 template <int L, typename T>
@@ -139,7 +139,37 @@ auto DistanceVolumeHierarchy<L, T>::gather_potential_cells(int                  
     return level_cells;
 }
 
-// test compilation
+template <int L, typename T>
+auto DistanceVolumeHierarchy<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
+
+    auto root_level = lowest_level_;
+    auto min_cell   = glm::vec<L, int>();
+    auto max_cell   = glm::vec<L, int>();
+    auto dimensions = glm::vec<L, int>(std::numeric_limits<int>::max());
+
+    for (int level = root_level; level < max_level_; ++level) {
+        auto level_resolution = resolution(level);
+
+        auto level_min_cell = get_cell(aabb.min_point, level_resolution);
+        auto level_max_cell = get_cell(aabb.max_point, level_resolution);
+
+        auto level_dimensions = level_max_cell - level_min_cell;
+
+        if (level_dimensions == dimensions) {
+            break;
+        }
+
+        root_level = level;
+        min_cell   = level_min_cell;
+        max_cell   = level_max_cell;
+        dimensions = level_dimensions;
+    }
+
+    auto& roots = roots_[root_level];
+
+    iterate(min_cell, max_cell, [&roots](auto const& cell) { roots.emplace(cell); });
+}
+
 template class DistanceVolumeHierarchy<2, float>;
 template class DistanceVolumeHierarchy<3, float>;
 template class DistanceVolumeHierarchy<2, double>;

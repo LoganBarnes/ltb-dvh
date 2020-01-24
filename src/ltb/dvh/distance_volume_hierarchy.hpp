@@ -77,9 +77,7 @@ public:
 
     explicit DistanceVolumeHierarchy(T base_resolution, int max_level = std::numeric_limits<int>::max());
 
-    void clear() {
-        levels_ = {{0, SparseVolumeMap{}}}; // The empty base level
-    }
+    void clear();
 
     /**
      * @brief All volumes added at the same time will be grouped together under the same root
@@ -87,10 +85,9 @@ public:
      * @param geometries
      */
     template <typename Geom>
-    void add_volumes(std::vector<Geom> const& geometries);
+    void add_volume(std::vector<Geom> const& geometries);
 
-    auto               levels() const -> LevelMap<SparseVolumeMap> const&;
-    [[nodiscard]] auto lowest_level() const -> int;
+    auto levels() const -> LevelMap<SparseVolumeMap> const&;
 
     auto base_resolution() const -> T;
 
@@ -101,16 +98,81 @@ public:
 private:
     T   base_resolution_;
     int max_level_;
+    int lowest_level_ = 0;
 
     LevelMap<SparseVolumeMap> levels_;
+    LevelMap<CellSet>         roots_;
 
     auto gather_potential_cells(int level_index, glm::vec<L, int> const& min_cell, glm::vec<L, int> const& max_cell)
         -> LevelMap<CellSet>;
+
+    auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
 };
+
+#if 1
 
 template <int L, typename T>
 template <typename Geom>
-void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometries) {
+void DistanceVolumeHierarchy<L, T>::add_volume(std::vector<Geom> const& geometries) {
+    if (geometries.empty()) {
+        return;
+    }
+
+    auto volume_bounds = sdf::AABB<L, T>();
+
+    for (auto const& geometry : geometries) {
+        auto aabb     = sdf::bounding_box(geometry);
+        volume_bounds = sdf::expand(volume_bounds, aabb.min_point);
+        volume_bounds = sdf::expand(volume_bounds, aabb.max_point);
+    }
+
+    add_roots_for_bounds(volume_bounds);
+
+    // ///////////////////////////////////////////////// //
+
+    auto level = roots_.begin()->first;
+    auto cells = roots_.begin()->second;
+
+    auto level_resolution = resolution(level);
+    auto half_resolution  = level_resolution * T(0.5);
+    auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
+
+    auto& distance_field = levels_[level];
+
+    for (const auto& cell : cells) {
+        auto const p = dvh::cell_center(cell, level_resolution);
+
+        auto min_dist     = std::numeric_limits<T>::infinity();
+        auto min_abs_dist = min_dist;
+
+        for (auto const& geometry : geometries) {
+            auto dist     = sdf::distance_to_geometry(p, geometry);
+            auto abs_dist = std::abs(dist);
+
+            if (should_replace_with(min_abs_dist, abs_dist, dist)) {
+                min_dist     = dist;
+                min_abs_dist = abs_dist;
+            }
+        }
+
+        if (!util::has_key(distance_field, cell)
+            || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
+            if (min_dist <= cell_corner_dist) {
+                distance_field.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+
+                if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
+                    // Visit children
+                }
+            }
+        }
+    }
+}
+
+#else
+
+template <int L, typename T>
+template <typename Geom>
+void DistanceVolumeHierarchy<L, T>::add_volume(std::vector<Geom> const& geometries) {
     if (geometries.empty()) {
         return;
     }
@@ -135,7 +197,7 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
         auto& level            = levels_[level_index];
         auto  level_resolution = resolution(level_index);
 #ifndef SHOW_ALL
-        auto half_resolution = level_resolution * T(0.5);
+        auto  half_resolution  = level_resolution * T(0.5);
 #endif
 
         for (const auto& cell : cells) {
@@ -167,5 +229,7 @@ void DistanceVolumeHierarchy<L, T>::add_volumes(std::vector<Geom> const& geometr
         }
     }
 }
+
+#endif
 
 } // namespace ltb::dvh

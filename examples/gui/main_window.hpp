@@ -57,9 +57,9 @@ private:
     std::shared_ptr<gvs::ErrorAlert> error_alert_;
 
     // Views
-    SdfView   sdf_view_;
+    //    SdfView   sdf_view_;
     DvhView2d dvh_view_2d_;
-    DvhView3d dvh_view_3d_;
+    //    DvhView3d dvh_view_3d_;
 
     View* current_view_ = &dvh_view_2d_;
 };

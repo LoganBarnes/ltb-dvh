@@ -226,7 +226,7 @@ void DvhView3d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<3>{base_resolution_};
 
     for (auto const& box : additive_boxes_) {
-        dvh_.add_volumes(decltype(additive_boxes_){box});
+        dvh_.add_volume(decltype(additive_boxes_){box});
     }
 }
 
