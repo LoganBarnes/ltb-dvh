@@ -49,7 +49,7 @@ auto vector_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> gl
 
     auto corner_to_point = positive_point - positive_box_corner;
 
-    auto              min    = glm::min(glm::compMax(corner_to_point), T(0));
+    auto const        min    = glm::min(glm::compMax(corner_to_point), T(0));
     glm::vec<L, bool> is_min = glm::equal(corner_to_point, glm::vec<L, T>(min));
 
     auto box_to_outer_point = glm::max(corner_to_point, T(0));

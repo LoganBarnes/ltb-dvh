@@ -202,9 +202,16 @@ void DvhView3d::render(const gvs::CameraPackage& camera_package) const {
 
 void DvhView3d::configure_gui() {
 
-    if (ImGui::DragFloat("Base Resolution", &base_resolution_, 0.05f, 0.1f, 2.f)) {
-        reset_volumes();
-        reset_scene();
+    if (ImGui::InputFloat("Base Resolution",
+                          &base_resolution_,
+                          0.01f,
+                          0.1f,
+                          "%.3f",
+                          ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if (base_resolution_ > 0.f) {
+            reset_volumes();
+            reset_scene();
+        }
     }
 
     if (!computation_time_message_.empty()) {
