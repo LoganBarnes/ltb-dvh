@@ -225,12 +225,9 @@ auto DvhView3d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) ->
 void DvhView3d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<3>{base_resolution_};
 
-    std::cout << "BOXES" << std::endl;
-
     for (auto const& box : additive_boxes_) {
         dvh_.add_volumes(decltype(additive_boxes_){box});
     }
-    std::cout << "DONE" << std::endl;
 }
 
 void DvhView3d::reset_scene() {
