@@ -28,10 +28,14 @@
 #include "ltb/sdf/sdf.hpp"
 #include "ltb/util/container_utils.hpp"
 #include "ltb/util/result.hpp"
+#include "ltb/util/timer.hpp"
 #include "scene_helpers.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
+
+// standard
+#include <sstream>
 
 using namespace Magnum;
 using namespace Platform;
@@ -142,6 +146,10 @@ void DvhView2d::configure_gui() {
         reset_scene();
     }
 
+    if (!computation_time_message_.empty()) {
+        ImGui::Text("%s", computation_time_message_.c_str());
+    }
+
     ImGui::Separator();
 
     gvs::configure_gui(scene_.get());
@@ -164,11 +172,16 @@ auto DvhView2d::handleMouseMoveEvent(Application::MouseMoveEvent & /*event*/) ->
 void DvhView2d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<2>{base_resolution_};
 
-    dvh_.add_volume(additive_lines_);
+    std::stringstream ss;
+    {
+        util::ScopedTimer timer("Computation time", ss);
+        dvh_.add_volume(additive_lines_);
 
-    for (auto const& box : additive_boxes_) {
-        dvh_.add_volume(decltype(additive_boxes_){box});
+        for (auto const& box : additive_boxes_) {
+            dvh_.add_volume(decltype(additive_boxes_){box});
+        }
     }
+    computation_time_message_ = ss.str();
 }
 
 void DvhView2d::reset_scene() {

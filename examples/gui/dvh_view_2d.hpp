@@ -66,6 +66,9 @@ private:
     gvs::SceneId                          dvh_root_scene_id_ = gvs::nil_id();
     std::unordered_map<int, gvs::SceneId> index_scene_ids_;
 
+    // Feedback
+    std::string computation_time_message_;
+
     void reset_volumes();
     void reset_scene();
 };

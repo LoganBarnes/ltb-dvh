@@ -33,7 +33,7 @@ template <>
 auto children_cells(glm::ivec2 const& cell) -> std::vector<glm::ivec2> {
     auto cell2 = cell * 2;
     return {
-        cell2,
+        cell2 + glm::ivec2(0, 0),
         cell2 + glm::ivec2(1, 0),
         cell2 + glm::ivec2(0, 1),
         cell2 + glm::ivec2(1, 1),
@@ -42,7 +42,17 @@ auto children_cells(glm::ivec2 const& cell) -> std::vector<glm::ivec2> {
 
 template <>
 auto children_cells(glm::ivec3 const& cell) -> std::vector<glm::ivec3> {
-    return {cell};
+    auto cell2 = cell * 2;
+    return {
+        cell2 + glm::ivec3(0, 0, 0),
+        cell2 + glm::ivec3(1, 0, 0),
+        cell2 + glm::ivec3(0, 1, 0),
+        cell2 + glm::ivec3(1, 1, 0),
+        cell2 + glm::ivec3(0, 0, 1),
+        cell2 + glm::ivec3(1, 0, 1),
+        cell2 + glm::ivec3(0, 1, 1),
+        cell2 + glm::ivec3(1, 1, 1),
+    };
 }
 
 namespace {
