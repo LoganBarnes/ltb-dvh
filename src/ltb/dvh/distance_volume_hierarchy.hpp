@@ -24,10 +24,20 @@
 
 // project
 #include "impl/distance_volume_hierarchy_cpu.hpp"
+#include <ltb/config.hpp>
 
 namespace ltb::dvh {
 
+#ifdef LTB_CUDA_ENABLED
+
 template <int L, typename T = float>
 using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;
+
+#else
+
+template <int L, typename T = float>
+using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;
+
+#endif
 
 } // namespace ltb::dvh
