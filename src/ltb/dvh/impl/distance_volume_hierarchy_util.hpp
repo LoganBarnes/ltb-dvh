@@ -1,4 +1,5 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
+// LTB Distance Volume Hierarchy
 // Copyright (c) 2020 Logan Barnes - All Rights Reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,24 +20,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-
-// ///////////////////////////////////////////////////////////////////////////////////////
-// @AUTO_GENERATION_MESSAGE@
-// ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include <string>
+// project
+#include "ltb/sdf/sdf.hpp"
+#include "ltb/util/comparison_utils.hpp"
 
-namespace ltb::paths {
+// external
+#include <glm/geometric.hpp>
 
-inline auto slash() -> std::string {
-    return "@SLASH@";
+// standard
+#include <vector>
+
+namespace ltb::dvh {
+
+template <int L>
+auto parent_cell(glm::vec<L, int> const& cell) -> glm::vec<L, int> {
+    return (cell + glm::min(glm::sign(cell), 0)) / 2; // TODO test this
 }
 
-inline auto project_root() -> std::string {
-    return "@NATIVE_PROJECT_SOURCE_DIR@" + slash();
+template <int L>
+auto children_cells(glm::vec<L, int> const& cell) -> std::vector<glm::vec<L, int>>;
+
+template <int L, typename T>
+auto cell_center(glm::vec<L, int> const& cell, const T& resolution) -> glm::vec<L, T> {
+    return (glm::vec<L, T>(cell) + glm::vec<L, T>(0.5)) * resolution;
 }
 
-#cmakedefine LTB_CUDA_ENABLED
+template <int L, typename T>
+auto get_cell(glm::vec<L, T> const& world_point, const T& resolution) -> glm::vec<L, int> {
+    return glm::vec<L, int>(glm::floor(world_point / resolution));
+}
 
-} // namespace ltb::paths
+template <typename T>
+auto should_replace_with(T previous_absolute_distance, T new_absolute_distance, T new_distance) -> bool {
+    bool equal = util::almost_equal(new_absolute_distance, previous_absolute_distance);
+    return (!equal && new_absolute_distance < previous_absolute_distance) || (equal && new_distance >= T(0));
+}
+
+} // namespace ltb::dvh
