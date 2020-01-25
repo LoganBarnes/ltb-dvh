@@ -94,10 +94,11 @@ void DistanceVolumeHierarchyCpu<L, T>::add_volume(std::vector<Geom> const& geome
     // ///////////////////////////////////////////////// //
 
     CellSet to_visit;
+    CellSet cells;
 
     for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
 
-        auto cells = std::move(to_visit);
+        cells = std::move(to_visit);
         to_visit.clear(); // Just to make sure
 
         if (util::has_key(roots_, level)) {
