@@ -41,7 +41,7 @@ auto add_boxes_to_scene(gvs::Scene*                                             
     std::vector<glm::vec3> lines;
 
     for (const auto& square : boxes) {
-        auto d = square.geometry.dimensions / 2.f;
+        auto d = square.geometry.half_dimensions;
 
         auto p0 = glm::vec2(-d.x, -d.y) + square.translation;
         auto p1 = glm::vec2(+d.x, -d.y) + square.translation;
@@ -72,7 +72,7 @@ auto add_boxes_to_scene(gvs::Scene*                                             
 
     for (auto const& box : boxes) {
         auto transform = glm::translate(glm::identity<glm::mat4>(), box.translation)
-            * glm::scale(glm::identity<glm::mat4>(), box.geometry.dimensions * 0.5f);
+            * glm::scale(glm::identity<glm::mat4>(), box.geometry.half_dimensions);
 
         const auto* transform_data = glm::value_ptr(transform);
         gvs::mat4   tmp_conversion;

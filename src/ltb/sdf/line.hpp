@@ -23,7 +23,7 @@
 #pragma once
 
 // project
-#include "aabb.hpp"
+#include "geometry.hpp"
 
 // external
 #include <glm/geometric.hpp>
@@ -34,35 +34,42 @@ namespace ltb {
 namespace sdf {
 
 template <int L, typename T = float>
-struct Line {
+struct Line : public Geometry<L, T> {
     glm::vec<L, T> start;
     glm::vec<L, T> end;
+
+    explicit Line(glm::vec<L, T> from, glm::vec<L, T> to) : start(from), end(to) {}
+    ~Line() override = default;
+
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
 };
 
 template <int L, typename T = float>
 auto make_line(glm::vec<L, T> start, glm::vec<L, T> end) -> Line<L, T> {
-    return {start, end};
+    return Line<L, T>{start, end};
 }
 
-template <int L, typename T = float>
-auto vector_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> glm::vec<L, T> {
-    auto start_to_point = point - line.start;
-    auto start_to_end   = line.end - line.start;
+template <int L, typename T>
+LTB_CUDA_FUNC auto Line<L, T>::vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
+    auto start_to_point = point - start;
+    auto start_to_end   = end - start;
 
     auto t_along_infinite_line = glm::dot(start_to_point, start_to_end) / glm::dot(start_to_end, start_to_end);
     auto t_dist_along_segment  = glm::clamp(t_along_infinite_line, T(0), T(1));
 
-    return glm::mix(line.start, line.end, t_dist_along_segment) - point;
+    return glm::mix(start, end, t_dist_along_segment) - point;
 }
 
-template <int L, typename T = float>
-auto distance_to_geometry(glm::vec<L, T> const& point, Line<L, T> const& line) -> T {
-    return glm::length(vector_to_geometry(point, line));
+template <int L, typename T>
+LTB_CUDA_FUNC auto Line<L, T>::distance_from(glm::vec<L, T> const& point) const -> T {
+    return glm::length(vector_from(point));
 }
 
-template <int L, typename T = float>
-auto bounding_box(Line<L, T> const& line) -> AABB<L, T> {
-    return {glm::min(line.start, line.end), glm::max(line.start, line.end)};
+template <int L, typename T>
+LTB_CUDA_FUNC auto Line<L, T>::bounding_box() const -> AABB<L, T> {
+    return {glm::min(start, end), glm::max(start, end)};
 }
 
 } // namespace sdf

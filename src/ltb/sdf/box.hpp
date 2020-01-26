@@ -23,7 +23,7 @@
 #pragma once
 
 // project
-#include "aabb.hpp"
+#include "geometry.hpp"
 
 // external
 #include <glm/geometric.hpp>
@@ -34,19 +34,26 @@ namespace ltb {
 namespace sdf {
 
 template <int L, typename T = float>
-struct Box {
-    glm::vec<L, T> dimensions;
+struct Box : public Geometry<L, T> {
+    glm::vec<L, T> half_dimensions;
+
+    explicit Box(glm::vec<L, T> dimensions) : half_dimensions(dimensions * T(0.5)) {}
+    ~Box() override = default;
+
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
 };
 
 template <int L, typename T = float>
 auto make_box(glm::vec<L, T> dimensions) -> Box<L, T> {
-    return {dimensions};
+    return Box<L, T>{dimensions};
 }
 
-template <int L, typename T = float>
-auto vector_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> glm::vec<L, T> {
+template <int L, typename T>
+LTB_CUDA_FUNC auto Box<L, T>::vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
     auto positive_point      = glm::abs(point);
-    auto positive_box_corner = box.dimensions * T(0.5);
+    auto positive_box_corner = half_dimensions;
 
     auto corner_to_point = positive_point - positive_box_corner;
 
@@ -61,10 +68,10 @@ auto vector_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> gl
     return point_to_box * glm::sign(point);
 }
 
-template <int L, typename T = float>
-auto distance_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> T {
+template <int L, typename T>
+LTB_CUDA_FUNC auto Box<L, T>::distance_from(glm::vec<L, T> const& point) const -> T {
     auto positive_point      = glm::abs(point);
-    auto positive_box_corner = box.dimensions * T(0.5);
+    auto positive_box_corner = half_dimensions;
 
     auto corner_to_point = positive_point - positive_box_corner;
 
@@ -74,9 +81,8 @@ auto distance_to_geometry(glm::vec<L, T> const& point, Box<L, T> const& box) -> 
     return dist_to_outer_point + dist_to_inner_point;
 }
 
-template <int L, typename T = float>
-auto bounding_box(Box<L, T> const& box) -> AABB<L, T> {
-    auto half_dimensions = box.dimensions * T(0.5);
+template <int L, typename T>
+LTB_CUDA_FUNC auto Box<L, T>::bounding_box() const -> AABB<L, T> {
     return {-half_dimensions, half_dimensions};
 }
 

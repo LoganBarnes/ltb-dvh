@@ -62,7 +62,7 @@ auto find_closest(float* closest_distance, glm::vec<L, float> const& point, std:
     auto abs_closest_distance = std::abs(*closest_distance);
 
     for (const auto& geometry : geometries) {
-        auto dist     = sdf::distance_to_geometry(point, geometry);
+        auto dist     = geometry.distance_from(point);
         auto abs_dist = std::abs(dist);
 
         if (abs_dist < abs_closest_distance) {
@@ -88,7 +88,7 @@ auto find_closest(glm::vec<3, float>* closest_vec, glm::vec<L, float> const& poi
     auto abs_closest_distance = glm::length(*closest_vec);
 
     for (const auto& geometry : geometries) {
-        auto vec_to_geom = sdf::vector_to_geometry(point, geometry);
+        auto vec_to_geom = geometry.vector_from(point);
         auto abs_dist    = glm::length(vec_to_geom);
 
         if (abs_dist < abs_closest_distance) {
@@ -105,9 +105,9 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
 
     oriented_lines_ = {
 #ifndef THREE_DEE
-        {{2.f, -2.f}, {2.f, 2.f}},
-        {{2.f, 2.f}, {-1.f, 3.f}},
-        {{-1.f, 3.f}, {-3.f, -1.f}},
+        sdf::make_oriented_line({2.f, -2.f}, {2.f, 2.f}),
+        sdf::make_oriented_line({2.f, 2.f}, {-1.f, 3.f}),
+        sdf::make_oriented_line({-1.f, 3.f}, {-3.f, -1.f}),
 #endif
     };
 

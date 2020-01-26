@@ -23,45 +23,26 @@
 #pragma once
 
 // project
-#include "line.hpp"
+#include "aabb.hpp"
+#include "ltb/cuda/cuda_func.hpp"
+
+// external
+#include "glm/geometric.hpp"
 
 namespace ltb {
 namespace sdf {
 
-template <typename T = float>
-struct OrientedLine : public Geometry<2, T> {
-    glm::vec<2, T> start;
-    glm::vec<2, T> end;
+template <int L, typename T = float>
+struct Geometry {
+    virtual ~Geometry() = 0;
 
-    explicit OrientedLine(glm::vec<2, T> from, glm::vec<2, T> to) : start(from), end(to) {}
-    ~OrientedLine() override = default;
-
-    LTB_CUDA_FUNC auto vector_from(glm::vec<2, T> const& point) const -> glm::vec<2, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<2, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<2, T> override;
+    LTB_CUDA_FUNC virtual auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> = 0;
+    LTB_CUDA_FUNC virtual auto distance_from(glm::vec<L, T> const& point) const -> T            = 0;
+    LTB_CUDA_FUNC virtual auto bounding_box() const -> AABB<L, T>                               = 0;
 };
 
-template <typename T = float>
-auto make_oriented_line(glm::vec<2, T> start, glm::vec<2, T> end) -> OrientedLine<T> {
-    return OrientedLine<T>{start, end};
-}
-
-template <typename T>
-LTB_CUDA_FUNC auto OrientedLine<T>::vector_from(glm::vec<2, T> const& point) const -> glm::vec<2, T> {
-    return make_line(start, end).vector_from(point);
-}
-
-template <typename T>
-LTB_CUDA_FUNC auto OrientedLine<T>::distance_from(glm::vec<2, T> const& point) const -> T {
-    T    negative_if_inside = glm::sign(glm::cross(point - start, end - start));
-    auto abs_distance       = make_line(start, end).distance_from(point);
-    return abs_distance * negative_if_inside + abs_distance * (T(1) - std::abs(negative_if_inside));
-}
-
-template <typename T>
-LTB_CUDA_FUNC auto OrientedLine<T>::bounding_box() const -> AABB<2, T> {
-    return make_line(start, end).bounding_box();
-}
+template <int L, typename T>
+Geometry<L, T>::~Geometry() = default;
 
 } // namespace sdf
 } // namespace ltb

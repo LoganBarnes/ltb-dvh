@@ -39,6 +39,82 @@ void DistanceVolumeHierarchyCpu<L, T>::clear() {
 }
 
 template <int L, typename T>
+void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* const geometry) {
+    return add_volume(geometry, geometry + 1);
+}
+
+template <int L, typename T>
+void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* const start,
+                                                  sdf::Geometry<L, T> const* const end) {
+    if (start >= end) {
+        return;
+    }
+
+    auto volume_bounds = sdf::AABB<L, T>();
+
+    for (auto const* geometry = start; geometry != end; ++geometry) {
+        auto aabb     = geometry->bounding_box();
+        volume_bounds = sdf::expand(volume_bounds, aabb.min_point);
+        volume_bounds = sdf::expand(volume_bounds, aabb.max_point);
+    }
+
+    add_roots_for_bounds(volume_bounds);
+
+    // ///////////////////////////////////////////////// //
+
+    CellSet to_visit;
+    CellSet cells;
+
+    for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
+
+        cells = std::move(to_visit);
+        to_visit.clear(); // Just to make sure
+
+        if (util::has_key(roots_, level)) {
+            auto const& root_cells = roots_.at(level);
+            cells.insert(root_cells.begin(), root_cells.end());
+        }
+
+        auto level_resolution = resolution(level);
+        auto half_resolution  = level_resolution * T(0.5);
+        auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
+
+        auto& distance_field = levels_[level];
+
+        for (const auto& cell : cells) {
+            auto const p = dvh::cell_center(cell, level_resolution);
+
+            auto min_dist     = std::numeric_limits<T>::infinity();
+            auto min_abs_dist = min_dist;
+
+            for (auto const* geometry = start; geometry != end; ++geometry) {
+                auto const dist     = geometry->distance_from(p);
+                auto const abs_dist = std::abs(dist);
+
+                if (should_replace_with(min_abs_dist, abs_dist, dist)) {
+                    min_dist     = dist;
+                    min_abs_dist = abs_dist;
+                }
+            }
+
+            // TODO: double check this logic for already existing cells with smaller distances
+            // (make sure children are still visited if necessary)
+            if (!util::has_key(distance_field, cell)
+                || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
+                if (min_dist <= cell_corner_dist) {
+                    distance_field.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+
+                    if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
+                        auto children = children_cells(cell);
+                        to_visit.insert(std::move_iterator(children.begin()), std::move_iterator(children.end()));
+                    }
+                }
+            }
+        }
+    }
+}
+
+template <int L, typename T>
 auto DistanceVolumeHierarchyCpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
     return levels_;
 }
