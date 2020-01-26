@@ -55,8 +55,8 @@ private:
     gvs::ErrorAlertRecorder error_recorder_;
 
     // Geometry
-    std::vector<sdf::Line<3>>               lines_;
-    std::vector<sdf::OrientedLine<>>        oriented_lines_;
+    std::vector<sdf::Line<3>>                          lines_;
+    std::vector<sdf::OrientedLine<>>                   oriented_lines_;
     std::vector<sdf::TransformedGeometry<sdf::Box, 2>> squares_;
 
     std::vector<sdf::TransformedGeometry<sdf::Box, 3>> boxes_;
