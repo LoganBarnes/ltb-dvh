@@ -32,7 +32,8 @@
 // standard
 #include <vector>
 
-namespace ltb::dvh {
+namespace ltb {
+namespace dvh {
 
 template <int L>
 auto parent_cell(glm::vec<L, int> const& cell) -> glm::vec<L, int> {
@@ -58,4 +59,25 @@ auto should_replace_with(T previous_absolute_distance, T new_absolute_distance, 
     return (!equal && new_absolute_distance < previous_absolute_distance) || (equal && new_distance >= T(0));
 }
 
-} // namespace ltb::dvh
+template <typename Func>
+void iterate(glm::ivec2 const& min_index, glm::ivec2 const& max_index, Func const& func) {
+    for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+        for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+            func(glm::ivec2{xi, yi});
+        }
+    }
+}
+
+template <typename Func>
+void iterate(glm::ivec3 const& min_index, glm::ivec3 const& max_index, Func const& func) {
+    for (int zi = min_index.z; zi <= max_index.z; ++zi) {
+        for (int yi = min_index.y; yi <= max_index.y; ++yi) {
+            for (int xi = min_index.x; xi <= max_index.x; ++xi) {
+                func(glm::ivec3{xi, yi, zi});
+            }
+        }
+    }
+}
+
+} // namespace dvh
+} // namespace ltb

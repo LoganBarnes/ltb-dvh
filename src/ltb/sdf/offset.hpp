@@ -24,11 +24,13 @@
 
 #include <type_traits>
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
-template <typename T = float, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+template <typename T = float>
 auto offset(T const& original_distance, T const& offset_distance) -> T {
     return original_distance - offset_distance;
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb

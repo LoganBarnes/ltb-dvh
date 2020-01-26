@@ -22,22 +22,12 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// project
-#include "impl/distance_volume_hierarchy_cpu.hpp"
+// generated
 #include <ltb/config.hpp>
 
-namespace ltb::dvh {
-
+// project
 #ifdef LTB_CUDA_ENABLED
-
-template <int L, typename T = float>
-using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;
-
+#include "impl/distance_volume_hierarchy_gpu.hpp"
 #else
-
-template <int L, typename T = float>
-using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;
-
+#include "impl/distance_volume_hierarchy_cpu.hpp"
 #endif
-
-} // namespace ltb::dvh

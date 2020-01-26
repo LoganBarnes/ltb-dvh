@@ -25,7 +25,8 @@
 // project
 #include "line.hpp"
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
 template <typename T = float>
 struct OrientedLine {
@@ -55,4 +56,5 @@ auto bounding_box(OrientedLine<T> const& line) -> AABB<2, T> {
     return bounding_box(make_line(line.start, line.end));
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb

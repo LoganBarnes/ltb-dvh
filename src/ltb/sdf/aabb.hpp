@@ -25,7 +25,8 @@
 // external
 #include <glm/geometric.hpp>
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
 template <int L, typename T = float>
 struct AABB {
@@ -38,4 +39,5 @@ auto expand(AABB<L, T> const& aabb, glm::vec<L, T> const& point) -> AABB<L, T> {
     return {glm::min(aabb.min_point, point), glm::max(aabb.max_point, point)};
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb

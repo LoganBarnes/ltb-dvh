@@ -30,7 +30,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/component_wise.hpp>
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
 template <int L, typename T = float>
 struct Box {
@@ -79,4 +80,5 @@ auto bounding_box(Box<L, T> const& box) -> AABB<L, T> {
     return {-half_dimensions, half_dimensions};
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb

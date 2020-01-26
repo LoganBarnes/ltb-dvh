@@ -30,7 +30,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/exterior_product.hpp>
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
 template <int L, typename T = float>
 struct Line {
@@ -64,4 +65,5 @@ auto bounding_box(Line<L, T> const& line) -> AABB<L, T> {
     return {glm::min(line.start, line.end), glm::max(line.start, line.end)};
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb

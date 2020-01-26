@@ -20,41 +20,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "distance_volume_hierarchy_cpu.hpp"
+#include "distance_volume_hierarchy_gpu.hpp"
 
 // external
 #include <doctest/doctest.h>
 
-namespace ltb::dvh {
+namespace ltb {
+namespace dvh {
 
 template <int L, typename T>
-DistanceVolumeHierarchyCpu<L, T>::DistanceVolumeHierarchyCpu(T base_resolution, int max_level)
+DistanceVolumeHierarchyGpu<L, T>::DistanceVolumeHierarchyGpu(T base_resolution, int max_level)
     : base_resolution_(base_resolution), max_level_(max_level) {
     clear();
 }
 
 template <int L, typename T>
-void DistanceVolumeHierarchyCpu<L, T>::clear() {
+void DistanceVolumeHierarchyGpu<L, T>::clear() {
     levels_.clear();
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
+auto DistanceVolumeHierarchyGpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
     return levels_;
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::base_resolution() const -> T {
+auto DistanceVolumeHierarchyGpu<L, T>::base_resolution() const -> T {
     return base_resolution_;
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::resolution(int level_index) const -> T {
+auto DistanceVolumeHierarchyGpu<L, T>::resolution(int level_index) const -> T {
     return base_resolution_ * std::pow<T>(2, level_index);
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
+auto DistanceVolumeHierarchyGpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
 
     auto root_level = lowest_level_;
     auto min_cell   = glm::vec<L, int>();
@@ -84,9 +85,10 @@ auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T
     iterate(min_cell, max_cell, [&roots](auto const& cell) { roots.emplace(cell); });
 }
 
-template class DistanceVolumeHierarchyCpu<2, float>;
-template class DistanceVolumeHierarchyCpu<3, float>;
-template class DistanceVolumeHierarchyCpu<2, double>;
-template class DistanceVolumeHierarchyCpu<3, double>;
+template class DistanceVolumeHierarchyGpu<2, float>;
+template class DistanceVolumeHierarchyGpu<3, float>;
+template class DistanceVolumeHierarchyGpu<2, double>;
+template class DistanceVolumeHierarchyGpu<3, double>;
 
-} // namespace ltb::dvh
+} // namespace dvh
+} // namespace ltb

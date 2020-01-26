@@ -25,7 +25,8 @@
 // external
 #include "glm/geometric.hpp"
 
-namespace ltb::sdf {
+namespace ltb {
+namespace sdf {
 
 template <template <int, typename> class G, int L, typename T = float>
 struct Geometry {
@@ -69,4 +70,5 @@ auto bounding_box(Geometry<G, L, T> const& geometry) -> AABB<L, T> {
     return {geometry.from_geometry_space(aabb.min_point), geometry.from_geometry_space(aabb.max_point)};
 }
 
-} // namespace ltb::sdf
+} // namespace sdf
+} // namespace ltb
