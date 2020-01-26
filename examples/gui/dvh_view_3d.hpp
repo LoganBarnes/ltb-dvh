@@ -58,7 +58,7 @@ private:
     dvh::DistanceVolumeHierarchy<3> dvh_;
 
     // Additive Volumes
-    std::vector<sdf::Geometry<sdf::Box, 3>> additive_boxes_;
+    std::vector<sdf::TransformedGeometry<sdf::Box, 3>> additive_boxes_;
 
     // Scene
     std::unique_ptr<gvs::LocalScene>      scene_;

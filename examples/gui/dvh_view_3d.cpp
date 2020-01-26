@@ -182,8 +182,8 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
     : error_recorder_(std::move(error_recorder)), dvh_(base_resolution_) {
 
     additive_boxes_ = {
-        sdf::make_geometry(sdf::make_box<3>({2.5f, 1.2f, 1.f}), {0.5f, -0.75f, 1.f}),
-        sdf::make_geometry(sdf::make_box<3>({0.25f, 1.1f, 3.f}), {3.7f, 2.f, -1.f}),
+        sdf::make_transformed_geometry(sdf::make_box<3>({2.5f, 1.2f, 1.f}), {0.5f, -0.75f, 1.f}),
+        sdf::make_transformed_geometry(sdf::make_box<3>({0.25f, 1.1f, 3.f}), {3.7f, 2.f, -1.f}),
     };
 
     scene_ = std::make_unique<gvs::LocalScene>();

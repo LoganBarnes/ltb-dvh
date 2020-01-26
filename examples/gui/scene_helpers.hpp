@@ -25,17 +25,17 @@
 // project
 #include "ltb/gvs/core/scene.hpp"
 #include "ltb/sdf/box.hpp"
-#include "ltb/sdf/geometry.hpp"
 #include "ltb/sdf/oriented_line.hpp"
+#include "ltb/sdf/transformed_geometry.hpp"
 
 namespace ltb::example {
 
 auto add_boxes_to_scene(gvs::Scene*                                    scene,
-                        std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
+                        std::vector<sdf::TransformedGeometry<sdf::Box, 2>> const& boxes,
                         gvs::SceneId const&                            parent = gvs::nil_id()) -> gvs::SceneId;
 
 auto add_boxes_to_scene(gvs::Scene*                                    scene,
-                        std::vector<sdf::Geometry<sdf::Box, 3>> const& boxes,
+                        std::vector<sdf::TransformedGeometry<sdf::Box, 3>> const& boxes,
                         gvs::SceneId const&                            parent = gvs::nil_id()) -> gvs::SceneId;
 
 auto add_lines_to_scene(gvs::Scene*                             scene,

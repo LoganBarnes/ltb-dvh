@@ -59,7 +59,7 @@ private:
 
     // Additive Volumes
     std::vector<sdf::OrientedLine<>>        additive_lines_;
-    std::vector<sdf::Geometry<sdf::Box, 2>> additive_boxes_;
+    std::vector<sdf::TransformedGeometry<sdf::Box, 2>> additive_boxes_;
 
     // Scene
     std::unique_ptr<gvs::LocalScene>      scene_;

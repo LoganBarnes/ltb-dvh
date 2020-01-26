@@ -35,7 +35,7 @@ namespace ltb::example {
 constexpr auto z_offset = 1e-3f;
 
 auto add_boxes_to_scene(gvs::Scene*                                    scene,
-                        std::vector<sdf::Geometry<sdf::Box, 2>> const& boxes,
+                        std::vector<sdf::TransformedGeometry<sdf::Box, 2>> const& boxes,
                         gvs::SceneId const&                            parent) -> gvs::SceneId {
 
     std::vector<glm::vec3> lines;
@@ -65,7 +65,7 @@ auto add_boxes_to_scene(gvs::Scene*                                    scene,
 }
 
 auto add_boxes_to_scene(gvs::Scene*                                    scene,
-                        std::vector<sdf::Geometry<sdf::Box, 3>> const& boxes,
+                        std::vector<sdf::TransformedGeometry<sdf::Box, 3>> const& boxes,
                         gvs::SceneId const&                            parent) -> gvs::SceneId {
 
     auto root = scene->add_item(gvs::SetPositions3d(), gvs::SetParent(parent));

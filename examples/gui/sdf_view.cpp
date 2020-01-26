@@ -113,15 +113,15 @@ SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorde
 
     squares_ = {
 #ifndef THREE_DEE
-        sdf::make_geometry(sdf::make_box<2>({2.4f, 1.3f}), {0.5f, -2.f}),
-        sdf::make_geometry(sdf::make_box<2>({1.2f, 4.f}), {-3.f, 0.5f}),
+        sdf::make_transformed_geometry(sdf::make_box<2>({2.4f, 1.3f}), {0.5f, -2.f}),
+        sdf::make_transformed_geometry(sdf::make_box<2>({1.2f, 4.f}), {-3.f, 0.5f}),
 #endif
     };
 
     boxes_ = {
 #ifdef THREE_DEE
-        sdf::make_geometry(sdf::make_box<3>({2.4f, 1.3f, 0.9f}), {0.5f, -2.f, 0.f}),
-        sdf::make_geometry(sdf::make_box<3>({1.2f, 4.f, 3.1f}), {-3.f, 0.5f, 1.f}),
+        sdf::make_transformed_geometry(sdf::make_box<3>({2.4f, 1.3f, 0.9f}), {0.5f, -2.f, 0.f}),
+        sdf::make_transformed_geometry(sdf::make_box<3>({1.2f, 4.f, 3.1f}), {-3.f, 0.5f, 1.f}),
 #endif
     };
 

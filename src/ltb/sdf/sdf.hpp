@@ -23,7 +23,7 @@
 #pragma once
 
 #include "box.hpp"
-#include "geometry.hpp"
 #include "line.hpp"
 #include "offset.hpp"
 #include "oriented_line.hpp"
+#include "transformed_geometry.hpp"
