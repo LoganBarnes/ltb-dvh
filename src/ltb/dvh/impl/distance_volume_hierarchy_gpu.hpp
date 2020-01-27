@@ -23,19 +23,19 @@
 #pragma once
 
 // project
-#include "ltb/dvh/distance_volume_hierarchy_util.hpp"
 #include "ltb/sdf/geometry.hpp"
 
 // external
 #include <glm/gtx/hash.hpp>
-//#include <thrust/device_vector.hpp>
 
 // standard
 #include <algorithm>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace ltb {
 namespace dvh {
@@ -43,11 +43,6 @@ namespace dvh {
 template <int L, typename T>
 class DistanceVolumeHierarchyGpu {
 public:
-    //    struct VolumeCell {
-    //        glm::vec<L, int> index;
-    //        glm::vec<L + 1, T> direction_and_distance;
-    //    }
-
     using SparseVolumeMap = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
     using CellSet         = std::unordered_set<glm::vec<L, int>>;
     template <typename V>
@@ -75,15 +70,12 @@ public:
     constexpr static int base_level = 0;
 
 private:
-    T   base_resolution_;
-    int max_level_;
-    int lowest_level_ = 0;
+    class Impl;
+    std::shared_ptr<Impl> impl_;
 
-    LevelMap<SparseVolumeMap> levels_;
-    LevelMap<CellSet>         roots_;
+    LevelMap<SparseVolumeMap> cpu_levels_;
 
-    void actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries);
-    auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
+    auto actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
 };
 
 template <int L, typename T = float>

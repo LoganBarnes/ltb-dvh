@@ -23,6 +23,7 @@
 #include "dvh_view_2d.hpp"
 
 // project
+#include "ltb/dvh/distance_volume_hierarchy_util.hpp"
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
 #include "ltb/sdf/sdf.hpp"
