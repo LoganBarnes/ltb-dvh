@@ -26,6 +26,7 @@
 #include "ltb/sdf/geometry.hpp"
 
 // external
+#include <cuda_runtime.h>
 #include <glm/gtx/hash.hpp>
 
 // standard

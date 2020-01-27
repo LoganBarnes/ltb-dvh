@@ -23,15 +23,17 @@
 #pragma once
 
 // project
-#include "ltb/dvh/distance_volume_hierarchy_util.hpp"
-#include "ltb/util/container_utils.hpp"
+#include "ltb/sdf/geometry.hpp"
 
 // external
 #include <glm/gtx/hash.hpp>
 
 // standard
+#include <algorithm>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace ltb::dvh {
 
@@ -47,11 +49,14 @@ public:
 
     void clear();
 
-    /*
-     * All volumes added at the same time will be grouped together under the same root
+    /**
+     * @brief All volumes added at the same time will be grouped together under the same root
+     * @tparam Geometry - Must be derived from sdf::Geometry<L, T>.
+     * @param geometries - the list of geometries to add.
      */
-    void add_volume(sdf::Geometry<L, T> const* geometry);
-    void add_volume(sdf::Geometry<L, T> const* start, sdf::Geometry<L, T> const* end);
+    template <typename Geom,
+              typename = typename std::enable_if<std::is_base_of<sdf::Geometry<L, T>, Geom>::value>::type>
+    void add_volume(std::vector<Geom> const& geometries);
 
     auto levels() const -> LevelMap<SparseVolumeMap> const&;
 
@@ -66,11 +71,24 @@ private:
     int max_level_;
     int lowest_level_ = 0;
 
-    LevelMap<SparseVolumeMap> levels_;
-    LevelMap<CellSet>         roots_;
+    LevelMap<SparseVolumeMap> levels_{};
+    LevelMap<CellSet>         roots_{};
 
+    auto actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
     auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
 };
+
+template <int L, typename T>
+template <typename Geometry, typename>
+void DistanceVolumeHierarchyCpu<L, T>::add_volume(std::vector<Geometry> const& geometries) {
+    std::vector<sdf::Geometry<L, T> const*> geometry_pointers(geometries.size(), nullptr);
+
+    std::transform(geometries.begin(), geometries.end(), geometry_pointers.begin(), [](const auto& geometry) {
+        return &geometry;
+    });
+
+    actually_add_volume(geometry_pointers);
+}
 
 template <int L, typename T = float>
 using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;

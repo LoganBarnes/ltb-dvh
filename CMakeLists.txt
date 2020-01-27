@@ -65,6 +65,10 @@ ltb_link_libraries(ltb_dvh
         ltb_sdf
         )
 
+if (CMAKE_CUDA_COMPILER)
+    ltb_include_directories(ltb_dvh SYSTEM PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+endif ()
+
 ################
 ### Examples ###
 ################

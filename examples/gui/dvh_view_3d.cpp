@@ -37,6 +37,7 @@
 
 // standard
 #include <sstream>
+#include <utility>
 
 using namespace Magnum;
 using namespace Platform;

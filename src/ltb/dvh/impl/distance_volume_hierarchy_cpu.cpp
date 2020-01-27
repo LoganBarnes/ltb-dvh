@@ -22,6 +22,9 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #include "distance_volume_hierarchy_cpu.hpp"
 
+// project
+#include "ltb/dvh/distance_volume_hierarchy_util.hpp"
+
 // external
 #include <doctest/doctest.h>
 
@@ -39,20 +42,16 @@ void DistanceVolumeHierarchyCpu<L, T>::clear() {
 }
 
 template <int L, typename T>
-void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* const geometry) {
-    return add_volume(geometry, geometry + 1);
-}
+auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries)
+    -> void {
 
-template <int L, typename T>
-void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* const start,
-                                                  sdf::Geometry<L, T> const* const end) {
-    if (start >= end) {
+    if (geometries.empty()) {
         return;
     }
 
     auto volume_bounds = sdf::AABB<L, T>();
 
-    for (auto const* geometry = start; geometry != end; ++geometry) {
+    for (auto const* geometry : geometries) {
         auto aabb     = geometry->bounding_box();
         volume_bounds = sdf::expand(volume_bounds, aabb.min_point);
         volume_bounds = sdf::expand(volume_bounds, aabb.max_point);
@@ -70,7 +69,7 @@ void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* con
         cells = std::move(to_visit);
         to_visit.clear(); // Just to make sure
 
-        if (util::has_key(roots_, level)) {
+        if (roots_.find(level) != roots_.end()) {
             auto const& root_cells = roots_.at(level);
             cells.insert(root_cells.begin(), root_cells.end());
         }
@@ -87,7 +86,7 @@ void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* con
             auto min_dist     = std::numeric_limits<T>::infinity();
             auto min_abs_dist = min_dist;
 
-            for (auto const* geometry = start; geometry != end; ++geometry) {
+            for (auto const* geometry : geometries) {
                 auto const dist     = geometry->distance_from(p);
                 auto const abs_dist = std::abs(dist);
 
@@ -99,14 +98,15 @@ void DistanceVolumeHierarchyCpu<L, T>::add_volume(sdf::Geometry<L, T> const* con
 
             // TODO: double check this logic for already existing cells with smaller distances
             // (make sure children are still visited if necessary)
-            if (!util::has_key(distance_field, cell)
+            if (distance_field.find(cell) == distance_field.end()
                 || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
                 if (min_dist <= cell_corner_dist) {
-                    distance_field.insert_or_assign(cell, glm::vec<L + 1, T>(p, min_dist));
+                    distance_field[cell] = glm::vec<L + 1, T>(p, min_dist);
 
                     if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
                         auto children = children_cells(cell);
-                        to_visit.insert(std::move_iterator(children.begin()), std::move_iterator(children.end()));
+                        to_visit.insert(std::make_move_iterator(children.begin()),
+                                        std::make_move_iterator(children.end()));
                     }
                 }
             }

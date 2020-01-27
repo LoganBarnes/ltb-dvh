@@ -33,6 +33,9 @@
 #include <glm/gtx/string_cast.hpp>
 #include <imgui.h>
 
+// standard
+#include <utility>
+
 using namespace Magnum;
 using namespace Platform;
 
