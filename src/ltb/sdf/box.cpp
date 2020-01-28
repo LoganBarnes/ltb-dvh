@@ -33,7 +33,7 @@ TEST_CASE_TEMPLATE("distance_to_box [sdf]", T, glm::vec2, glm::vec3, glm::vec3, 
     auto box   = sdf::make_box(T(2));
     auto point = T(0);
 
-    CHECK(sdf::distance_to_geometry(point, box) == doctest::Approx(-1));
+    CHECK(box.distance_from(point) == doctest::Approx(-1));
 }
 
 } // namespace

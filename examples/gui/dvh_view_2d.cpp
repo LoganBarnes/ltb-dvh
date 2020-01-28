@@ -127,6 +127,10 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
         sdf::make_transformed_geometry(sdf::make_box<2>({0.25f, 1.1f}), {3.7f, 2.f}),
     };
 
+    subtractive_boxes_ = {
+        sdf::make_transformed_geometry(sdf::make_box<2>({0.5f, 2.2f}), {0.0f, -0.5f}),
+    };
+
     scene_ = std::make_unique<gvs::LocalScene>();
 
     reset_volumes();
@@ -176,11 +180,19 @@ void DvhView2d::reset_volumes() {
 
     std::stringstream ss;
     {
-        util::ScopedTimer timer("Computation time", ss);
+        util::ScopedTimer timer("Additive computation time", ss);
         dvh_.add_volume(additive_lines_);
 
         for (auto const& box : additive_boxes_) {
             dvh_.add_volume(decltype(additive_boxes_){box});
+        }
+    }
+
+    {
+        util::ScopedTimer timer("Subtractive computation time", ss);
+
+        for (auto const& box : subtractive_boxes_) {
+            dvh_.subtract_volume(decltype(subtractive_boxes_){box});
         }
     }
     computation_time_message_ = ss.str();
@@ -196,13 +208,19 @@ void DvhView2d::reset_scene() {
     auto oriented_lines_scene_id = add_lines_to_scene(scene_.get(), additive_lines_);
     scene_->update_item(oriented_lines_scene_id, gvs::SetReadableId("Additive Lines"));
 
-    auto squares_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
-
-    scene_->update_item(squares_scene_id,
+    auto additive_squares_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
+    scene_->update_item(additive_squares_scene_id,
                         gvs::SetReadableId("Additive Boxes"),
                         gvs::SetColoring(gvs::Coloring::UniformColor),
                         gvs::SetShading(gvs::Shading::UniformColor),
                         gvs::SetUniformColor({1.f, 1.f, 1.f}));
+
+    auto subtractive_squares_scene_id = add_boxes_to_scene(scene_.get(), subtractive_boxes_);
+    scene_->update_item(subtractive_squares_scene_id,
+                        gvs::SetReadableId("Subtractive Boxes"),
+                        gvs::SetColoring(gvs::Coloring::UniformColor),
+                        gvs::SetShading(gvs::Shading::UniformColor),
+                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
 
     for (auto const& [level_index, sparse_distance_field] : dvh_.levels()) {
 

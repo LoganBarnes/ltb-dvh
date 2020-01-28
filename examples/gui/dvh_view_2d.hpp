@@ -61,6 +61,9 @@ private:
     std::vector<sdf::OrientedLine<>>                   additive_lines_;
     std::vector<sdf::TransformedGeometry<sdf::Box, 2>> additive_boxes_;
 
+    // Subtractive Volumes
+    std::vector<sdf::TransformedGeometry<sdf::Box, 2>> subtractive_boxes_;
+
     // Scene
     std::unique_ptr<gvs::LocalScene>      scene_;
     gvs::SceneId                          dvh_root_scene_id_ = gvs::nil_id();

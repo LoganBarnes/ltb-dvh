@@ -33,7 +33,7 @@ TEST_CASE("distance_to_oriented_line [sdf]") {
     [[maybe_unused]] auto line  = sdf::make_oriented_line({-1, -1}, {2, 2});
     [[maybe_unused]] auto point = glm::vec2(0);
 
-    CHECK(sdf::distance_to_geometry(point, line) == doctest::Approx(0));
+    CHECK(line.distance_from(point) == doctest::Approx(0));
 }
 
 } // namespace

@@ -42,6 +42,21 @@ void DistanceVolumeHierarchyCpu<L, T>::clear() {
 }
 
 template <int L, typename T>
+auto DistanceVolumeHierarchyCpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
+    return levels_;
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchyCpu<L, T>::base_resolution() const -> T {
+    return base_resolution_;
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchyCpu<L, T>::resolution(int level_index) const -> T {
+    return base_resolution_ * std::pow<T>(2, level_index);
+}
+
+template <int L, typename T>
 auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries)
     -> void {
 
@@ -115,21 +130,6 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
-    return levels_;
-}
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::base_resolution() const -> T {
-    return base_resolution_;
-}
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyCpu<L, T>::resolution(int level_index) const -> T {
-    return base_resolution_ * std::pow<T>(2, level_index);
-}
-
-template <int L, typename T>
 auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
 
     auto root_level = lowest_level_;
@@ -158,6 +158,45 @@ auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T
     auto& roots = roots_[root_level];
 
     iterate(min_cell, max_cell, [&roots](auto const& cell) { roots.emplace(cell); });
+}
+
+template <int L, typename T>
+auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
+    const std::vector<const sdf::Geometry<L, T>*>& geometries) -> void {
+
+    if (geometries.empty()) {
+        return;
+    }
+
+    CellSet to_visit;
+    CellSet cells;
+
+    for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
+
+        cells = std::move(to_visit);
+        to_visit.clear(); // Just to make sure
+
+        if (roots_.find(level) != roots_.end()) {
+            auto const& root_cells = roots_.at(level);
+            cells.insert(root_cells.begin(), root_cells.end());
+        }
+
+        auto level_resolution = resolution(level);
+        // auto half_resolution  = level_resolution * T(0.5);
+        // auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
+
+        // auto& distance_field = levels_[level];
+
+        for (const auto& cell : cells) {
+            auto const p = dvh::cell_center(cell, level_resolution);
+
+            auto min_dist = std::numeric_limits<T>::infinity();
+
+            for (auto const* geometry : geometries) {
+                min_dist = std::min(min_dist, geometry->distance_from(p));
+            }
+        }
+    }
 }
 
 template class DistanceVolumeHierarchyCpu<2, float>;
