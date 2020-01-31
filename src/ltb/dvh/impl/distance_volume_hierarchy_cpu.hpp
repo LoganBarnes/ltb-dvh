@@ -68,7 +68,8 @@ public:
 
     auto resolution(int level_index) const -> T;
 
-    constexpr static int base_level = 0;
+    constexpr static int base_level       = 0;
+    constexpr static T   not_fully_inside = std::numeric_limits<T>::infinity();
 
 private:
     T   base_resolution_;

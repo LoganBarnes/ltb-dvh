@@ -78,11 +78,13 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
 
     CellSet to_visit;
     CellSet cells;
+    CellSet children_to_remove;
 
     for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
 
         cells = std::move(to_visit);
         to_visit.clear(); // Just to make sure
+        children_to_remove.clear();
 
         if (roots_.find(level) != roots_.end()) {
             auto const& root_cells = roots_.at(level);
@@ -111,19 +113,34 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
                 }
             }
 
-            // TODO: double check this logic for already existing cells with smaller distances
-            // (make sure children are still visited if necessary)
-            if (distance_field.find(cell) == distance_field.end()
-                || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
-                if (min_dist <= cell_corner_dist) {
-                    distance_field[cell] = glm::vec<L + 1, T>(p, min_dist);
+            bool inside_volume = (min_dist < 0.f);
 
-                    if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
-                        auto children = children_cells(cell);
-                        to_visit.insert(std::make_move_iterator(children.begin()),
-                                        std::make_move_iterator(children.end()));
-                    }
+            auto value_to_store
+                = (min_abs_dist <= cell_corner_dist ? DistanceVolumeHierarchyCpu<L, T>::not_fully_inside : min_dist);
+
+            if (value_to_store == DistanceVolumeHierarchyCpu<L, T>::not_fully_inside) {
+                // Cell may not be fully inside the volume, but it is close to the
+                // border so descendants might be inside the volume.
+
+                // Add if the cell does not already exist. If it does exist it is either an
+                // inside value we should not overwrite or it is already a 'not_fully_inside' value.
+                distance_field.emplace(cell, glm::vec<L + 1, T>(DistanceVolumeHierarchyCpu<L, T>::not_fully_inside));
+
+            } else if (inside_volume) {
+                // This is entirely contained by the volume
+
+                // Add/replace the cell if it doesn't exist or the current value contains a smaller distance
+                if (distance_field.find(cell) == distance_field.end()
+                    || std::abs(distance_field.at(cell)[L]) < min_abs_dist) {
+                    distance_field[cell] = glm::vec<L + 1, T>(p, value_to_store);
                 }
+            }
+
+            if (distance_field.find(cell) != distance_field.end()
+                && distance_field.at(cell)[L] == DistanceVolumeHierarchyCpu<L, T>::not_fully_inside) {
+
+                auto children = children_cells(cell);
+                to_visit.insert(std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
             }
         }
     }
@@ -162,7 +179,7 @@ auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T
 
 template <int L, typename T>
 auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
-    const std::vector<const sdf::Geometry<L, T>*>& geometries) -> void {
+    std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void {
 
     if (geometries.empty()) {
         return;
