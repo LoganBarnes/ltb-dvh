@@ -79,12 +79,25 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
     CellSet to_visit;
     CellSet cells;
     CellSet children_to_remove;
+    CellSet to_remove;
 
     for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
 
+        auto& distance_field = levels_[level];
+
+        to_remove = std::move(children_to_remove);
+        children_to_remove.clear();
+
+        for (const auto& cell_to_remove : to_remove) {
+            distance_field.erase(cell_to_remove);
+
+            auto children = children_cells(cell_to_remove);
+            children_to_remove.insert(std::make_move_iterator(children.begin()),
+                                      std::make_move_iterator(children.end()));
+        }
+
         cells = std::move(to_visit);
         to_visit.clear(); // Just to make sure
-        children_to_remove.clear();
 
         if (roots_.find(level) != roots_.end()) {
             auto const& root_cells = roots_.at(level);
@@ -94,8 +107,6 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
         auto level_resolution = resolution(level);
         auto half_resolution  = level_resolution * T(0.5);
         auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
-
-        auto& distance_field = levels_[level];
 
         for (const auto& cell : cells) {
             auto const p = dvh::cell_center(cell, level_resolution);
@@ -130,9 +141,17 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
                 // This is entirely contained by the volume
 
                 // Add/replace the cell if it doesn't exist or the current value contains a smaller distance
-                if (distance_field.find(cell) == distance_field.end()
-                    || std::abs(distance_field.at(cell)[L]) < min_abs_dist) {
+                if (distance_field.find(cell) == distance_field.end()) {
                     distance_field[cell] = glm::vec<L + 1, T>(p, value_to_store);
+                } else if (distance_field.at(cell)[L] > min_abs_dist) {
+                    auto old_dist        = distance_field.at(cell)[L];
+                    distance_field[cell] = glm::vec<L + 1, T>(p, value_to_store);
+
+                    if (old_dist == DistanceVolumeHierarchyCpu<L, T>::not_fully_inside) {
+                        auto children = children_cells(cell);
+                        children_to_remove.insert(std::make_move_iterator(children.begin()),
+                                                  std::make_move_iterator(children.end()));
+                    }
                 }
             }
 

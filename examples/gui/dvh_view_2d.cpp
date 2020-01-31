@@ -125,6 +125,7 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
     additive_boxes_ = {
         sdf::make_transformed_geometry(sdf::make_box<2>({2.5f, 1.2f}), {0.5f, -0.75f}),
         sdf::make_transformed_geometry(sdf::make_box<2>({0.25f, 1.1f}), {3.7f, 2.f}),
+        sdf::make_transformed_geometry(sdf::make_box<2>({2.1f, 0.3f}), {0.f, 2.5f}),
     };
 
     subtractive_boxes_ = {
