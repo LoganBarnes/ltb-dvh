@@ -21,7 +21,7 @@
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
 // project
-#include "line.hpp"
+#include "offset_line.hpp"
 
 // external
 #include <doctest/doctest.h>
@@ -29,11 +29,11 @@
 namespace {
 using namespace ltb;
 
-TEST_CASE_TEMPLATE("distance_to_line [sdf]", T, glm::vec2, glm::vec3, glm::dvec2, glm::dvec3) {
-    auto line  = sdf::make_line(T(-1), T(2));
+TEST_CASE_TEMPLATE("distance_to_offset_line [sdf]", T, glm::vec2, glm::vec3, glm::dvec2, glm::dvec3) {
+    auto line  = sdf::make_offset_line(T(-1), T(2), T(0.5)[0]);
     auto point = T(0);
 
-    CHECK(line.distance_from(point) == doctest::Approx(0));
+    CHECK(line.distance_from(point) == doctest::Approx(-0.5));
 }
 
 } // namespace
