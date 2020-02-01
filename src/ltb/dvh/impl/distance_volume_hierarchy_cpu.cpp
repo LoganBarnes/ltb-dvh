@@ -85,8 +85,7 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
 
         auto& distance_field = levels_[level];
 
-        to_remove = std::move(children_to_remove);
-        children_to_remove.clear();
+        std::swap(to_remove, children_to_remove);
 
         for (const auto& cell_to_remove : to_remove) {
             distance_field.erase(cell_to_remove);
@@ -95,9 +94,9 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
             children_to_remove.insert(std::make_move_iterator(children.begin()),
                                       std::make_move_iterator(children.end()));
         }
+        to_remove.clear();
 
-        cells = std::move(to_visit);
-        to_visit.clear(); // Just to make sure
+        std::swap(cells, to_visit);
 
         if (roots_.find(level) != roots_.end()) {
             auto const& root_cells = roots_.at(level);
@@ -162,6 +161,7 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_add_volume(std::vector<sdf::Geom
                 to_visit.insert(std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
             }
         }
+        cells.clear();
     }
 }
 
@@ -204,13 +204,30 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
         return;
     }
 
+    CellSet children_to_remove;
+    CellSet to_remove;
     CellSet to_visit;
     CellSet cells;
+    CellSet children_previously_inside;
+    CellSet previously_inside;
 
     for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
 
-        cells = std::move(to_visit);
-        to_visit.clear(); // Just to make sure
+        auto& distance_field = levels_[level];
+
+        std::swap(to_remove, children_to_remove);
+
+        for (const auto& cell_to_remove : to_remove) {
+            distance_field.erase(cell_to_remove);
+
+            auto children = children_cells(cell_to_remove);
+            children_to_remove.insert(std::make_move_iterator(children.begin()),
+                                      std::make_move_iterator(children.end()));
+        }
+        to_remove.clear();
+
+        std::swap(cells, to_visit);
+        std::swap(previously_inside, children_previously_inside);
 
         if (roots_.find(level) != roots_.end()) {
             auto const& root_cells = roots_.at(level);
@@ -218,10 +235,8 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
         }
 
         auto level_resolution = resolution(level);
-        // auto half_resolution  = level_resolution * T(0.5);
-        // auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
-
-        // auto& distance_field = levels_[level];
+        auto half_resolution  = level_resolution * T(0.5);
+        auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
 
         for (const auto& cell : cells) {
             auto const p = dvh::cell_center(cell, level_resolution);
@@ -231,7 +246,40 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
             for (auto const* geometry : geometries) {
                 min_dist = std::min(min_dist, geometry->distance_from(p));
             }
+
+            if (min_dist < -cell_corner_dist) {
+                distance_field.erase(cell);
+
+                auto children = children_cells(cell);
+                children_to_remove.insert(std::make_move_iterator(children.begin()),
+                                          std::make_move_iterator(children.end()));
+            } else if (min_dist < cell_corner_dist) {
+                auto inside = false;
+                if (auto iter = previously_inside.find(cell); iter != previously_inside.end()) {
+                    inside |= true;
+                }
+                if (auto iter = distance_field.find(cell); iter != distance_field.end() && iter->second[L] < 0.f) {
+                    inside |= true;
+                }
+
+                distance_field[cell] = glm::vec<L + 1, T>(DistanceVolumeHierarchyCpu<L, T>::not_fully_inside);
+
+                auto children = children_cells(cell);
+                if (inside) {
+                    children_previously_inside.insert(children.begin(), children.end());
+                }
+                to_visit.insert(std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
+            } else {
+                if (auto previous = distance_field.find(cell);
+                    previous == distance_field.end() || previous->second[L] < -min_dist) {
+                    if (auto iter = previously_inside.find(cell); iter != previously_inside.end()) {
+                        distance_field[cell] = glm::vec<L + 1, T>(p, -min_dist);
+                    }
+                }
+            }
         }
+        cells.clear();
+        previously_inside.clear();
     }
 }
 
