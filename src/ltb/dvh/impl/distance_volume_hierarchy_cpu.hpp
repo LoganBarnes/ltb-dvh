@@ -40,8 +40,10 @@ namespace ltb::dvh {
 template <int L, typename T>
 class DistanceVolumeHierarchyCpu {
 public:
+    using CellSet = std::unordered_set<glm::vec<L, int>>;
+    template <typename V>
+    using CellMap         = std::unordered_map<glm::vec<L, int>, V>;
     using SparseVolumeMap = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
-    using CellSet         = std::unordered_set<glm::vec<L, int>>;
     template <typename V>
     using LevelMap = std::map<int, V, std::greater<int>>;
 
