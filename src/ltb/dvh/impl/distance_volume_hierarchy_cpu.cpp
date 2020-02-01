@@ -263,11 +263,13 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
                     children_state = State::PreviouslyInside;
                 }
 
-                distance_field[cell] = glm::vec<L + 1, T>(DistanceVolumeHierarchyCpu<L, T>::not_fully_inside);
+                if (auto dist_iter = distance_field.find(cell); dist_iter != distance_field.end()) {
+                    distance_field[cell] = glm::vec<L + 1, T>(DistanceVolumeHierarchyCpu<L, T>::not_fully_inside);
+                }
 
                 auto children = children_cells(cell);
-                for (const auto& child : children) {
-                    to_visit.insert_or_assign(child, children_state);
+                for (const auto& child_cell : children) {
+                    to_visit.insert_or_assign(child_cell, children_state);
                 }
             } else {
                 if (auto previous = distance_field.find(cell);
