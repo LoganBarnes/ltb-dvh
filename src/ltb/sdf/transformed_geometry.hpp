@@ -47,8 +47,8 @@ template <template <int, typename> class G,
           int L,
           typename T = float,
           typename   = typename std::enable_if<std::is_base_of<Geometry<L, T>, G<L, T>>::value>::type>
-auto make_transformed_geometry(G<L, T> geometry, glm::vec<L, T> transation = {}) {
-    return TransformedGeometry<G, L, T>(geometry, transation);
+auto make_transformed_geometry(G<L, T> geometry, glm::vec<L, T> translation = {}) {
+    return TransformedGeometry<G, L, T>(geometry, translation);
 }
 
 template <template <int, typename> class G, int L, typename T>

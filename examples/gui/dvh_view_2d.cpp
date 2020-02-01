@@ -114,7 +114,7 @@ void mesh_cell(std::vector<glm::vec3>* triangles,
 DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
     : error_recorder_(std::move(error_recorder)), dvh_(base_resolution_) {
 
-    additive_lines_ = {
+    additive_polygon_ = {
         sdf::make_oriented_line({0.f, 2.f}, {-2.f, 4.f}),
         sdf::make_oriented_line({-2.f, 4.f}, {-2.51f, 3.f}),
         sdf::make_oriented_line({-2.51f, 3.f}, {-4.f, 2.9f}),
@@ -130,6 +130,12 @@ DvhView2d::DvhView2d(gvs::ErrorAlertRecorder error_recorder)
 
     subtractive_boxes_ = {
         sdf::make_transformed_geometry(sdf::make_box<2>({0.5f, 2.2f}), {0.0f, -0.5f}),
+    };
+
+    subtractive_lines_ = {
+        sdf::make_offset_line<2>({-2.33f, 3.66f}, {-3.33f, 2.66f}, 0.444f),
+        sdf::make_offset_line<2>({-3.33f, 2.66f}, {-2.33f, 1.66f}, 0.099f),
+        sdf::make_offset_line<2>({-2.33f, 1.66f}, {0.2f, 2.5f}, 0.099f),
     };
 
     scene_ = std::make_unique<gvs::LocalScene>();
@@ -182,7 +188,7 @@ void DvhView2d::reset_volumes() {
     std::stringstream ss;
     {
         util::ScopedTimer timer("Additive computation time", ss);
-        dvh_.add_volume(additive_lines_);
+        dvh_.add_volume(additive_polygon_);
 
         for (auto const& box : additive_boxes_) {
             dvh_.add_volume(decltype(additive_boxes_){box});
@@ -195,6 +201,8 @@ void DvhView2d::reset_volumes() {
         for (auto const& box : subtractive_boxes_) {
             dvh_.subtract_volume(decltype(subtractive_boxes_){box});
         }
+
+        dvh_.subtract_volume(subtractive_lines_);
     }
     computation_time_message_ = ss.str();
 }
@@ -206,7 +214,7 @@ void DvhView2d::reset_scene() {
     scene_->add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     dvh_root_scene_id_ = scene_->add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
 
-    auto oriented_lines_scene_id = add_lines_to_scene(scene_.get(), additive_lines_);
+    auto oriented_lines_scene_id = add_lines_to_scene(scene_.get(), additive_polygon_);
     scene_->update_item(oriented_lines_scene_id, gvs::SetReadableId("Additive Lines"));
 
     auto additive_squares_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
@@ -219,6 +227,13 @@ void DvhView2d::reset_scene() {
     auto subtractive_squares_scene_id = add_boxes_to_scene(scene_.get(), subtractive_boxes_);
     scene_->update_item(subtractive_squares_scene_id,
                         gvs::SetReadableId("Subtractive Boxes"),
+                        gvs::SetColoring(gvs::Coloring::UniformColor),
+                        gvs::SetShading(gvs::Shading::UniformColor),
+                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
+
+    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
+    scene_->update_item(offset_lines_scene_id,
+                        gvs::SetReadableId("Subtractive Lines"),
                         gvs::SetColoring(gvs::Coloring::UniformColor),
                         gvs::SetShading(gvs::Shading::UniformColor),
                         gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));

@@ -109,4 +109,26 @@ auto add_lines_to_scene(gvs::Scene*                             scene,
                            gvs::SetParent(parent));
 }
 
+auto add_offset_lines_to_scene(gvs::Scene*                            scene,
+                               std::vector<sdf::OffsetLine<2>> const& offset_lines,
+                               gvs::SceneId const&                    parent) -> gvs::SceneId {
+
+    std::vector<glm::vec3> lines;
+    std::vector<glm::vec2> tex_coords;
+    for (const auto& line : offset_lines) {
+        lines.emplace_back(line.start.x, line.start.y, z_offset);
+        lines.emplace_back(line.end.x, line.end.y, z_offset);
+        tex_coords.emplace_back(0.f, 0.f);
+        tex_coords.emplace_back(1.f, 1.f);
+    }
+    assert(lines.size() == tex_coords.size());
+
+    return scene->add_item(gvs::SetPositions3d(lines),
+                           gvs::SetTextureCoordinates3d(tex_coords),
+                           gvs::SetLines(),
+                           gvs::SetColoring(gvs::Coloring::TextureCoordinates),
+                           gvs::SetShading(gvs::Shading::UniformColor),
+                           gvs::SetParent(parent));
+}
+
 } // namespace ltb::example

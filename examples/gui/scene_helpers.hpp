@@ -25,6 +25,7 @@
 // project
 #include "ltb/gvs/core/scene.hpp"
 #include "ltb/sdf/box.hpp"
+#include "ltb/sdf/offset_line.hpp"
 #include "ltb/sdf/oriented_line.hpp"
 #include "ltb/sdf/transformed_geometry.hpp"
 
@@ -41,5 +42,9 @@ auto add_boxes_to_scene(gvs::Scene*                                             
 auto add_lines_to_scene(gvs::Scene*                             scene,
                         std::vector<sdf::OrientedLine<>> const& oriented_lines,
                         gvs::SceneId const&                     parent = gvs::nil_id()) -> gvs::SceneId;
+
+auto add_offset_lines_to_scene(gvs::Scene*                            scene,
+                               std::vector<sdf::OffsetLine<2>> const& offset_lines,
+                               gvs::SceneId const&                    parent = gvs::nil_id()) -> gvs::SceneId;
 
 } // namespace ltb::example

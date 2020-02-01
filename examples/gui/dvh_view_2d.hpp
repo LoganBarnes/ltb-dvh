@@ -58,11 +58,12 @@ private:
     dvh::DistanceVolumeHierarchy<2> dvh_;
 
     // Additive Volumes
-    std::vector<sdf::OrientedLine<>>                   additive_lines_;
+    std::vector<sdf::OrientedLine<>>                   additive_polygon_;
     std::vector<sdf::TransformedGeometry<sdf::Box, 2>> additive_boxes_;
 
     // Subtractive Volumes
     std::vector<sdf::TransformedGeometry<sdf::Box, 2>> subtractive_boxes_;
+    std::vector<sdf::OffsetLine<2>>                    subtractive_lines_;
 
     // Scene
     std::unique_ptr<gvs::LocalScene>      scene_;

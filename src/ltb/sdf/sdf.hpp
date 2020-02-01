@@ -26,4 +26,5 @@
 #include "line.hpp"
 #include "offset.hpp"
 #include "oriented_line.hpp"
+#include "offset_line.hpp"
 #include "transformed_geometry.hpp"

@@ -188,6 +188,10 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
         sdf::make_transformed_geometry(sdf::make_box<3>({0.25f, 1.1f, 3.f}), {3.7f, 2.f, -1.f}),
     };
 
+    subtractive_lines_ = {
+        sdf::make_offset_line<3>({0.5f, -0.75f, 0.f}, {0.5f, -0.75f, 5.f}, 0.1f),
+    };
+
     scene_ = std::make_unique<gvs::LocalScene>();
 
     reset_volumes();
@@ -244,11 +248,16 @@ void DvhView3d::reset_volumes() {
 
     std::stringstream ss;
     {
-        util::ScopedTimer timer("Computation time", ss);
+        util::ScopedTimer timer("Additive computation time", ss);
 
         for (auto const& box : additive_boxes_) {
             dvh_.add_volume(decltype(additive_boxes_){box});
         }
+    }
+
+    {
+        util::ScopedTimer timer("Subtractive computation time", ss);
+        dvh_.subtract_volume(subtractive_lines_);
     }
     computation_time_message_ = ss.str();
 }
