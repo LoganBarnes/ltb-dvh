@@ -90,6 +90,7 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
 }
 
 [[maybe_unused]] void mesh_cell(std::vector<glm::vec3>* triangles,
+                                std::vector<glm::vec3>* normals,
                                 std::vector<glm::vec3>* colors,
                                 glm::ivec3 const&       cell,
                                 float                   resolution,
@@ -122,6 +123,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(front_upper_right);
     triangles->emplace_back(front_upper_left);
 
+    normals->emplace_back(0, 0, 1);
+    normals->emplace_back(0, 0, 1);
+    normals->emplace_back(0, 0, 1);
+    normals->emplace_back(0, 0, 1);
+    normals->emplace_back(0, 0, 1);
+    normals->emplace_back(0, 0, 1);
+
     triangles->emplace_back(back_bottom_right);
     triangles->emplace_back(back_bottom_left);
     triangles->emplace_back(back_upper_left);
@@ -130,6 +138,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(back_upper_left);
     triangles->emplace_back(back_upper_right);
 
+    normals->emplace_back(0, 0, -1);
+    normals->emplace_back(0, 0, -1);
+    normals->emplace_back(0, 0, -1);
+    normals->emplace_back(0, 0, -1);
+    normals->emplace_back(0, 0, -1);
+    normals->emplace_back(0, 0, -1);
+
     triangles->emplace_back(front_bottom_right);
     triangles->emplace_back(back_bottom_right);
     triangles->emplace_back(front_upper_right);
@@ -137,6 +152,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(back_bottom_right);
     triangles->emplace_back(back_upper_right);
     triangles->emplace_back(front_upper_right);
+
+    normals->emplace_back(1, 0, 0);
+    normals->emplace_back(1, 0, 0);
+    normals->emplace_back(1, 0, 0);
+    normals->emplace_back(1, 0, 0);
+    normals->emplace_back(1, 0, 0);
+    normals->emplace_back(1, 0, 0);
 
     triangles->emplace_back(back_bottom_left);
     triangles->emplace_back(front_bottom_left);
@@ -146,6 +168,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(front_upper_left);
     triangles->emplace_back(back_upper_left);
 
+    normals->emplace_back(-1, 0, 0);
+    normals->emplace_back(-1, 0, 0);
+    normals->emplace_back(-1, 0, 0);
+    normals->emplace_back(-1, 0, 0);
+    normals->emplace_back(-1, 0, 0);
+    normals->emplace_back(-1, 0, 0);
+
     triangles->emplace_back(front_upper_left);
     triangles->emplace_back(front_upper_right);
     triangles->emplace_back(back_upper_left);
@@ -154,6 +183,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(back_upper_right);
     triangles->emplace_back(back_upper_left);
 
+    normals->emplace_back(0, 1, 0);
+    normals->emplace_back(0, 1, 0);
+    normals->emplace_back(0, 1, 0);
+    normals->emplace_back(0, 1, 0);
+    normals->emplace_back(0, 1, 0);
+    normals->emplace_back(0, 1, 0);
+
     triangles->emplace_back(back_bottom_left);
     triangles->emplace_back(back_bottom_right);
     triangles->emplace_back(front_bottom_right);
@@ -161,6 +197,13 @@ void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, flo
     triangles->emplace_back(back_bottom_left);
     triangles->emplace_back(front_bottom_right);
     triangles->emplace_back(front_bottom_left);
+
+    normals->emplace_back(0, -1, 0);
+    normals->emplace_back(0, -1, 0);
+    normals->emplace_back(0, -1, 0);
+    normals->emplace_back(0, -1, 0);
+    normals->emplace_back(0, -1, 0);
+    normals->emplace_back(0, -1, 0);
 
     glm::vec3 color;
 
@@ -290,7 +333,7 @@ void DvhView3d::reset_scene() {
             scene_->add_item(gvs::SetReadableId("Cell Values"),
                              gvs::SetPositions3d(),
                              gvs::SetTriangles(),
-                             gvs::SetShading(gvs::Shading::UniformColor),
+                             gvs::SetShading(gvs::Shading::Lambertian),
                              gvs::SetColoring(gvs::Coloring::VertexColors),
                              gvs::SetParent(level_scene_id));
 
@@ -312,12 +355,16 @@ void DvhView3d::reset_scene() {
         assert(children.size() == 2ul);
 
         std::vector<glm::vec3> positions;
+        std::vector<glm::vec3> normals;
         std::vector<glm::vec3> colors;
 
         for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
-            mesh_cell(&positions, &colors, cell, resolution, dir_and_dist[3], level_index);
+            mesh_cell(&positions, &normals, &colors, cell, resolution, dir_and_dist[3], level_index);
         }
-        scene_->update_item(children[0], gvs::SetPositions3d(positions), gvs::SetVertexColors3d(colors));
+        scene_->update_item(children[0],
+                            gvs::SetPositions3d(positions),
+                            gvs::SetNormals3d(normals),
+                            gvs::SetVertexColors3d(colors));
 
         positions.clear();
         for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
