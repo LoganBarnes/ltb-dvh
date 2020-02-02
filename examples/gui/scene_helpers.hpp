@@ -47,4 +47,8 @@ auto add_offset_lines_to_scene(gvs::Scene*                            scene,
                                std::vector<sdf::OffsetLine<2>> const& offset_lines,
                                gvs::SceneId const&                    parent = gvs::nil_id()) -> gvs::SceneId;
 
+auto add_offset_lines_to_scene(gvs::Scene*                            scene,
+                               std::vector<sdf::OffsetLine<3>> const& offset_lines,
+                               gvs::SceneId const&                    parent = gvs::nil_id()) -> gvs::SceneId;
+
 } // namespace ltb::example

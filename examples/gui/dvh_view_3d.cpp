@@ -233,6 +233,7 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
 
     subtractive_lines_ = {
         sdf::make_offset_line<3>({0.5f, -0.75f, 0.f}, {0.5f, -0.75f, 5.f}, 0.1f),
+        sdf::make_offset_line<3>({-0.5f, -0.15f, 1.5f}, {4.f, -0.15f, 1.5f}, 0.2f),
     };
 
     scene_ = std::make_unique<gvs::LocalScene>();
@@ -313,12 +314,18 @@ void DvhView3d::reset_scene() {
     dvh_root_scene_id_ = scene_->add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
 
     auto squares_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
-
     scene_->update_item(squares_scene_id,
                         gvs::SetReadableId("Additive Boxes"),
                         gvs::SetColoring(gvs::Coloring::UniformColor),
                         gvs::SetShading(gvs::Shading::UniformColor),
                         gvs::SetUniformColor({1.f, 1.f, 1.f}));
+
+    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
+    scene_->update_item(offset_lines_scene_id,
+                        gvs::SetReadableId("Subtractive Lines"),
+                        gvs::SetColoring(gvs::Coloring::UniformColor),
+                        gvs::SetShading(gvs::Shading::UniformColor),
+                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
 
     for (auto const& [level_index, sparse_distance_field] : dvh_.levels()) {
 
