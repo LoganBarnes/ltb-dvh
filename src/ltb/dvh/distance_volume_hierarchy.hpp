@@ -26,8 +26,10 @@
 #include <ltb/config.hpp>
 
 // project
-#ifdef LTB_CUDA_ENABLED
+#if defined(LTB_CUDA_ENABLED)
 #include "impl/distance_volume_hierarchy_gpu.hpp"
+#elif defined(_OPENMP)
+#include "impl/distance_volume_hierarchy_cpu_parallel.hpp"
 #else
 #include "impl/distance_volume_hierarchy_cpu.hpp"
 #endif

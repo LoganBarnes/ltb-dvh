@@ -282,6 +282,49 @@ auto DistanceVolumeHierarchyCpu<L, T>::actually_subtract_volumes(
         }
         cells.clear();
     }
+
+#if 0
+    /*
+     * Clean-up
+     */
+    CellMap<int> total_counts;
+    CellMap<int> num_outside;
+
+    for (int level = lowest_level_; level < roots_.begin()->first; ++level) {
+
+        auto& distance_field = levels_[level];
+
+        for (auto iter = distance_field.begin(); iter != distance_field.end();) {
+            const auto& cell = iter->first;
+
+            if (auto counts_iter = total_counts.find(cell); counts_iter != total_counts.end()) {
+                if (auto outside_iter = num_outside.find(cell);
+                    outside_iter != num_outside.end() && outside_iter->second == counts_iter->second) {
+                    iter = distance_field.erase(iter);
+                    continue;
+                }
+            }
+            ++iter;
+        }
+        total_counts.clear();
+        num_outside.clear();
+
+        auto level_resolution = resolution(level);
+        auto half_resolution  = level_resolution * T(0.5);
+        auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
+
+        for (const auto& [cell, vector_and_distance] : distance_field) {
+            auto parent = parent_cell(cell);
+            total_counts[parent]++;
+
+            if (std::isinf(vector_and_distance[L])) {
+                num_outside[parent]++;
+            }
+        }
+
+        // TODO: Delete the actual child nodes too
+    }
+#endif
 }
 
 template class DistanceVolumeHierarchyCpu<2, float>;
