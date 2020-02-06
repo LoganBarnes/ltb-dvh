@@ -232,7 +232,10 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
     };
 
     subtractive_lines_ = {
+        sdf::make_offset_line<3>({4.5f, 3.25f, 0.3f}, {0.5f, -0.75f, 0.f}, 0.1f),
         sdf::make_offset_line<3>({0.5f, -0.75f, 0.f}, {0.5f, -0.75f, 5.f}, 0.1f),
+        //
+        sdf::make_offset_line<3>({3.77f, 2.15f, -1.5f}, {4.f, -0.15f, 1.5f}, 0.2f),
         sdf::make_offset_line<3>({4.f, -0.15f, 1.5f}, {-0.5f, -0.15f, 1.5f}, 0.2f),
         sdf::make_offset_line<3>({-0.5f, -0.15f, 1.5f}, {0.4f, -0.15f, 0.f}, 0.2f),
         sdf::make_offset_line<3>({0.4f, -0.15f, 0.f}, {1.f, -0.15f, 2.f}, 0.3f),
