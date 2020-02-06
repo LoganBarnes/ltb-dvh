@@ -82,34 +82,8 @@ private:
     LevelMap<SparseVolumeMap> levels_;
     LevelMap<CellSet>         roots_;
 
-    auto actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
     auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
-    auto actually_subtract_volumes(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
 };
-
-template <int L, typename T>
-template <typename Geometry, typename>
-void DistanceVolumeHierarchyCpu<L, T>::add_volume(std::vector<Geometry> const& geometries) {
-    std::vector<sdf::Geometry<L, T> const*> geometry_pointers(geometries.size(), nullptr);
-
-    std::transform(geometries.begin(), geometries.end(), geometry_pointers.begin(), [](const auto& geometry) {
-        return &geometry;
-    });
-
-    actually_add_volume(geometry_pointers);
-}
-
-template <int L, typename T>
-template <typename Geometry, typename>
-void DistanceVolumeHierarchyCpu<L, T>::subtract_volume(std::vector<Geometry> const& geometries) {
-    std::vector<sdf::Geometry<L, T> const*> geometry_pointers(geometries.size(), nullptr);
-
-    std::transform(geometries.begin(), geometries.end(), geometry_pointers.begin(), [](const auto& geometry) {
-        return &geometry;
-    });
-
-    actually_subtract_volumes(geometry_pointers);
-}
 
 template <int L, typename T = float>
 using DistanceVolumeHierarchy = DistanceVolumeHierarchyCpu<L, T>;

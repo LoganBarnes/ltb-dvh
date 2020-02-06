@@ -40,7 +40,7 @@ struct Box : public Geometry<L, T> {
     LTB_CUDA_FUNC Box() = default;
     LTB_CUDA_FUNC explicit Box(glm::vec<L, T> dimensions) : half_dimensions(dimensions * T(0.5)) {}
 
-    LTB_CUDA_FUNC ~Box();
+    LTB_CUDA_FUNC ~Box() = default;
 
     LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
     LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;

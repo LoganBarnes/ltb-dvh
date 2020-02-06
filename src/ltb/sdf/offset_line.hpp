@@ -39,7 +39,7 @@ struct OffsetLine : public Geometry<L, T> {
     LTB_CUDA_FUNC OffsetLine(glm::vec<L, T> from, glm::vec<L, T> to, T offset)
         : start(from), end(to), offset_distance(offset) {}
 
-    LTB_CUDA_FUNC ~OffsetLine();
+    LTB_CUDA_FUNC ~OffsetLine() = default;
 
     LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
     LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;

@@ -41,8 +41,9 @@ struct Line : public Geometry<L, T> {
     LTB_CUDA_FUNC Line() = default;
     LTB_CUDA_FUNC Line(glm::vec<L, T> from, glm::vec<L, T> to) : start(from), end(to) {}
 
-    LTB_CUDA_FUNC ~Line();
-    A_FUNC auto        vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
+    LTB_CUDA_FUNC ~Line() = default;
+
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
     LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
     LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
 };

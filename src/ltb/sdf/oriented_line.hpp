@@ -36,7 +36,7 @@ struct OrientedLine : public Geometry<2, T> {
     LTB_CUDA_FUNC OrientedLine() = default;
     LTB_CUDA_FUNC OrientedLine(glm::vec<2, T> from, glm::vec<2, T> to) : start(from), end(to) {}
 
-    LTB_CUDA_FUNC ~OrientedLine();
+    LTB_CUDA_FUNC ~OrientedLine() = default;
 
     LTB_CUDA_FUNC auto vector_from(glm::vec<2, T> const& point) const -> glm::vec<2, T>;
     LTB_CUDA_FUNC auto distance_from(glm::vec<2, T> const& point) const -> T;
