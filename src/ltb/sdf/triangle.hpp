@@ -36,7 +36,7 @@ namespace ltb {
 namespace sdf {
 
 template <int L, typename T = float>
-struct Triangle : public Geometry<L, T> {
+struct Triangle {
     glm::vec<L, T> p0;
     glm::vec<L, T> p1;
     glm::vec<L, T> p2;
@@ -45,11 +45,9 @@ struct Triangle : public Geometry<L, T> {
     LTB_CUDA_FUNC Triangle(glm::vec<L, T> point0, glm::vec<L, T> point1, glm::vec<L, T> point2)
         : p0(point0), p1(point1), p2(point2) {}
 
-    LTB_CUDA_FUNC ~Triangle() = default;
-
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T>;
 };
 
 template <int L, typename T = float>

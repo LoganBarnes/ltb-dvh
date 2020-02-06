@@ -84,9 +84,9 @@ namespace ltb {
 namespace dvh {
 
 template <int L, typename T>
-template <typename Geometry, typename>
+template <typename Geometry>
 void DistanceVolumeHierarchyGpu<L, T>::add_volume(std::vector<Geometry> const& cpu_geometries) {
-    //    thrust::device_vector<Geometry> gpu_geometries(cpu_geometries.begin(), cpu_geometries.end());
+    thrust::device_vector<Geometry> gpu_geometries(cpu_geometries.begin(), cpu_geometries.end());
 
     if (cpu_geometries.empty()) {
         return;
@@ -194,9 +194,9 @@ void DistanceVolumeHierarchyGpu<L, T>::add_volume(std::vector<Geometry> const& c
 }
 
 template <int L, typename T>
-template <typename Geometry, typename>
+template <typename Geometry>
 void DistanceVolumeHierarchyGpu<L, T>::subtract_volume(std::vector<Geometry> const& cpu_geometries) {
-    //    thrust::device_vector<Geometry> gpu_geometries(cpu_geometries.begin(), cpu_geometries.end());
+    thrust::device_vector<Geometry> gpu_geometries(cpu_geometries.begin(), cpu_geometries.end());
 
     if (cpu_geometries.empty()) {
         return;

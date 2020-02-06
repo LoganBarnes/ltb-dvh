@@ -57,13 +57,11 @@ public:
      * @tparam Geometry - Must be derived from sdf::Geometry<L, T>.
      * @param geometries - the list of geometries to add.
      */
-    template <typename Geom,
-              typename = typename std::enable_if<std::is_base_of<sdf::Geometry<L, T>, Geom>::value>::type>
-    void add_volume(std::vector<Geom> const& geometries);
+    template <typename Geometry>
+    void add_volume(std::vector<Geometry> const& geometries);
 
-    template <typename Geom,
-              typename = typename std::enable_if<std::is_base_of<sdf::Geometry<L, T>, Geom>::value>::type>
-    void subtract_volume(std::vector<Geom> const& geometries);
+    template <typename Geometry>
+    void subtract_volume(std::vector<Geometry> const& geometries);
 
     auto levels() const -> LevelMap<SparseVolumeMap> const&;
 

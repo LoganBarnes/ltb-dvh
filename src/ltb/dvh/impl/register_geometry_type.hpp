@@ -84,7 +84,7 @@ namespace ltb {
 namespace dvh {
 
 template <int L, typename T>
-template <typename Geometry, typename>
+template <typename Geometry>
 void DistanceVolumeHierarchyCpu<L, T>::add_volume(std::vector<Geometry> const& geometries) {
 
     if (geometries.empty()) {
@@ -193,7 +193,7 @@ void DistanceVolumeHierarchyCpu<L, T>::add_volume(std::vector<Geometry> const& g
 }
 
 template <int L, typename T>
-template <typename Geometry, typename>
+template <typename Geometry>
 void DistanceVolumeHierarchyCpu<L, T>::subtract_volume(std::vector<Geometry> const& geometries) {
     if (geometries.empty()) {
         return;

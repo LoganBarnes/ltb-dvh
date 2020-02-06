@@ -25,21 +25,3 @@
 // project
 #include "aabb.hpp"
 #include "ltb/cuda/cuda_func.hpp"
-
-namespace ltb {
-namespace sdf {
-
-template <int L, typename T = float>
-struct Geometry {
-    LTB_CUDA_FUNC virtual ~Geometry() = 0;
-
-    LTB_CUDA_FUNC virtual auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> = 0;
-    LTB_CUDA_FUNC virtual auto distance_from(glm::vec<L, T> const& point) const -> T            = 0;
-    LTB_CUDA_FUNC virtual auto bounding_box() const -> AABB<L, T>                               = 0;
-};
-
-template <int L, typename T>
-Geometry<L, T>::~Geometry() = default;
-
-} // namespace sdf
-} // namespace ltb

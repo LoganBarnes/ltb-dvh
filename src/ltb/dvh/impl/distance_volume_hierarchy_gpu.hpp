@@ -62,13 +62,11 @@ public:
      * @tparam Geometry - Must be derived from sdf::Geometry<L, T>.
      * @param geometries - the list of geometries to add.
      */
-    template <typename Geom,
-              typename = typename std::enable_if<std::is_base_of<sdf::Geometry<L, T>, Geom>::value>::type>
-    void add_volume(std::vector<Geom> const& geometries);
+    template <typename Geometry>
+    void add_volume(std::vector<Geometry> const& geometries);
 
-    template <typename Geom,
-              typename = typename std::enable_if<std::is_base_of<sdf::Geometry<L, T>, Geom>::value>::type>
-    void subtract_volume(std::vector<Geom> const& geometries);
+    template <typename Geometry>
+    void subtract_volume(std::vector<Geometry> const& geometries);
 
     auto levels() const -> LevelMap<SparseVolumeMap> const&;
 
@@ -90,14 +88,7 @@ private:
     LevelMap<SparseVolumeMap> gpu_cells_;
     LevelMap<SparseVolumeMap> gpu_values_;
 
-    auto actually_add_volume(sdf::Geometry<L, T> const* cpu_geometries,
-                             sdf::Geometry<L, T> const* gpu_geometries,
-                             std::size_t                num_geometries) -> void;
-
     auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
-    auto actually_subtract_volumes(sdf::Geometry<L, T> const* cpu_geometries,
-                                   sdf::Geometry<L, T> const* gpu_geometries,
-                                   std::size_t                num_geometries) -> void;
 };
 
 template <int L, typename T = float>

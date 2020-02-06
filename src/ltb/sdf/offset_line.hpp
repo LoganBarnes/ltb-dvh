@@ -30,7 +30,7 @@ namespace ltb {
 namespace sdf {
 
 template <int L, typename T = float>
-struct OffsetLine : public Geometry<L, T> {
+struct OffsetLine {
     glm::vec<L, T> start           = {};
     glm::vec<L, T> end             = {};
     T              offset_distance = 0.f;
@@ -39,11 +39,9 @@ struct OffsetLine : public Geometry<L, T> {
     LTB_CUDA_FUNC OffsetLine(glm::vec<L, T> from, glm::vec<L, T> to, T offset)
         : start(from), end(to), offset_distance(offset) {}
 
-    LTB_CUDA_FUNC ~OffsetLine() = default;
-
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T>;
 };
 
 template <int L, typename T = float>

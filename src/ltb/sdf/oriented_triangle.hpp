@@ -29,7 +29,7 @@ namespace ltb {
 namespace sdf {
 
 template <typename T = float>
-struct OrientedTriangle : public Geometry<3, T> {
+struct OrientedTriangle {
     glm::vec<3, T> p0;
     glm::vec<3, T> p1;
     glm::vec<3, T> p2;
@@ -38,11 +38,9 @@ struct OrientedTriangle : public Geometry<3, T> {
     LTB_CUDA_FUNC OrientedTriangle(glm::vec<3, T> point0, glm::vec<3, T> point1, glm::vec<3, T> point2)
         : p0(point0), p1(point1), p2(point2) {}
 
-    LTB_CUDA_FUNC ~OrientedTriangle() = default;
-
-    LTB_CUDA_FUNC auto vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<3, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<3, T> override;
+    LTB_CUDA_FUNC auto vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<3, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<3, T>;
 };
 
 template <typename T = float>

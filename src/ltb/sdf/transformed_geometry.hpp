@@ -29,7 +29,7 @@ namespace ltb {
 namespace sdf {
 
 template <template <int, typename> class G, int L, typename T = float>
-struct TransformedGeometry : public Geometry<L, T> {
+struct TransformedGeometry {
     G<L, T>        geometry    = {};
     glm::vec<L, T> translation = {};
 
@@ -37,20 +37,15 @@ struct TransformedGeometry : public Geometry<L, T> {
     LTB_CUDA_FUNC explicit TransformedGeometry(G<L, T> geom, glm::vec<L, T> trans = {})
         : geometry(geom), translation(trans) {}
 
-    LTB_CUDA_FUNC ~TransformedGeometry() = default;
-
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
+    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T>;
 
     LTB_CUDA_FUNC auto to_geometry_space(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
     LTB_CUDA_FUNC auto from_geometry_space(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
 };
 
-template <template <int, typename> class G,
-          int L,
-          typename T = float,
-          typename   = typename std::enable_if<std::is_base_of<Geometry<L, T>, G<L, T>>::value>::type>
+template <template <int, typename> class G, int L, typename T = float>
 LTB_CUDA_FUNC auto make_transformed_geometry(G<L, T> geometry, glm::vec<L, T> translation = {}) {
     return TransformedGeometry<G, L, T>(geometry, translation);
 }
