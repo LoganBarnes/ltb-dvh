@@ -25,3 +25,48 @@
 // project
 #include "aabb.hpp"
 #include "ltb/cuda/cuda_func.hpp"
+
+// standard
+#include <type_traits>
+
+// https://stackoverflow.com/a/16824239
+
+#define HAS_FUNCTION(name)                                                                                             \
+    template <typename, typename T>                                                                                    \
+    struct has_##name {                                                                                                \
+        static_assert(std::integral_constant<T, false>::value,                                                         \
+                      "Second template parameter needs to be of function type.");                                      \
+    };                                                                                                                 \
+                                                                                                                       \
+    template <typename C, typename Ret, typename... Args>                                                              \
+    struct has_##name<C, Ret(Args...)> {                                                                               \
+    private:                                                                                                           \
+        template <typename T>                                                                                          \
+        static constexpr auto check(T*) ->                                                                             \
+            typename std::is_same<decltype(std::declval<T>().name(std::declval<Args>()...)), Ret>::type;               \
+                                                                                                                       \
+        template <typename>                                                                                            \
+        static constexpr std::false_type check(...);                                                                   \
+                                                                                                                       \
+        typedef decltype(check<C>(0)) type;                                                                            \
+                                                                                                                       \
+    public:                                                                                                            \
+        static constexpr bool value = type::value;                                                                     \
+    };
+
+HAS_FUNCTION(vector_from)
+HAS_FUNCTION(distance_from)
+HAS_FUNCTION(bounding_box)
+
+template <template <int, typename> class G, int L, typename T>
+constexpr bool has_vector_from_v = has_vector_from<G<L, T>, glm::vec<L, T>(glm::vec<L, T> const&)>::value;
+
+template <template <int, typename> class G, int L, typename T>
+constexpr bool has_distance_from_v = has_distance_from<G<L, T>, glm::vec<L, T>(glm::vec<L, T> const&)>::value;
+
+template <template <int, typename> class G, int L, typename T>
+constexpr bool has_bounding_box_v = has_bounding_box<G<L, T>, ::ltb::sdf::AABB<L, T>()>::value;
+
+template <template <int, typename> class G, int L, typename T>
+constexpr bool is_geometry_v
+    = has_bounding_box_v<G, L, T>() && has_vector_from_v<G, L, T>() && has_distance_from_v<G, L, T>();
