@@ -40,10 +40,11 @@ namespace ltb::dvh {
 template <int L, typename T>
 class DistanceVolumeHierarchyCpu {
 public:
-    using CellSet = std::unordered_set<glm::vec<L, int>>;
+    using Cell    = glm::vec<L, int>;
+    using CellSet = std::unordered_set<Cell>;
     template <typename V>
-    using CellMap         = std::unordered_map<glm::vec<L, int>, V>;
-    using SparseVolumeMap = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
+    using CellMap         = std::unordered_map<Cell, V>;
+    using SparseVolumeMap = std::unordered_map<Cell, glm::vec<L + 1, T>>;
     template <typename V>
     using LevelMap = std::map<int, V, std::greater<int>>;
 
@@ -78,8 +79,8 @@ private:
     int max_level_;
     int lowest_level_ = 0;
 
-    LevelMap<SparseVolumeMap> levels_{};
-    LevelMap<CellSet>         roots_{};
+    LevelMap<SparseVolumeMap> levels_;
+    LevelMap<CellSet>         roots_;
 
     auto actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
     auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;

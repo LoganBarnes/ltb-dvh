@@ -27,6 +27,15 @@ option(LTB_BUILD_DVH_EXAMPLES "Build example programs" OFF)
 
 include(ltb-gvs/ltb-util/cmake/LtbConfig.cmake) # <-- Additional project options are in here.
 
+if (CMAKE_CUDA_COMPILER)
+    # Fix CUDA compilation warnings
+    list(APPEND
+            LTB_COMPILE_FLAGS
+            $<$<COMPILE_LANGUAGE:CXX>:-fsized-deallocation>
+            $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=esa_on_defaulted_function_ignored>
+            )
+endif ()
+
 ################################
 ### Third Party Dependencies ###
 ################################

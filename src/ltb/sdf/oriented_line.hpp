@@ -30,19 +30,21 @@ namespace sdf {
 
 template <typename T = float>
 struct OrientedLine : public Geometry<2, T> {
-    glm::vec<2, T> start;
-    glm::vec<2, T> end;
+    glm::vec<2, T> start = {};
+    glm::vec<2, T> end   = {};
 
-    explicit OrientedLine(glm::vec<2, T> from, glm::vec<2, T> to) : start(from), end(to) {}
-    ~OrientedLine() override = default;
+    LTB_CUDA_FUNC OrientedLine() = default;
+    LTB_CUDA_FUNC OrientedLine(glm::vec<2, T> from, glm::vec<2, T> to) : start(from), end(to) {}
 
-    LTB_CUDA_FUNC auto vector_from(glm::vec<2, T> const& point) const -> glm::vec<2, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<2, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<2, T> override;
+    LTB_CUDA_FUNC ~OrientedLine();
+
+    LTB_CUDA_FUNC auto vector_from(glm::vec<2, T> const& point) const -> glm::vec<2, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<2, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<2, T>;
 };
 
 template <typename T = float>
-auto make_oriented_line(glm::vec<2, T> start, glm::vec<2, T> end) -> OrientedLine<T> {
+LTB_CUDA_FUNC auto make_oriented_line(glm::vec<2, T> start, glm::vec<2, T> end) -> OrientedLine<T> {
     return OrientedLine<T>{start, end};
 }
 

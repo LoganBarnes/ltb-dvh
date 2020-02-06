@@ -28,7 +28,7 @@ namespace ltb {
 namespace sdf {
 
 template <typename T = float>
-auto offset(T const& original_distance, T const& offset_distance) -> T {
+LTB_CUDA_FUNC auto offset(T const& original_distance, T const& offset_distance) -> T {
     return original_distance - offset_distance;
 }
 

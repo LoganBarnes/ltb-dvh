@@ -24,245 +24,80 @@
 
 // project
 #include "ltb/dvh/distance_volume_hierarchy_util.hpp"
+#include "ltb/sdf/sdf.hpp"
 
 // external
 #include <doctest/doctest.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-namespace ltb {
-namespace dvh {
-
-template <int L, typename T>
-struct VolumeCell {
-    glm::vec<L, int>   index;
-    glm::vec<L + 1, T> direction_and_distance = glm::vec<L + 1, T>(std::numeric_limits<T>::infinity());
-
-    explicit VolumeCell(glm::vec<L, int> cell) : index(cell) {}
-
-    explicit VolumeCell(glm::vec<L, int> cell, glm::vec<L + 1, T> dir_and_dist)
-        : index(cell), direction_and_distance(dir_and_dist) {}
-};
-
-template <int L, typename T>
-LTB_CUDA_FUNC auto operator==(VolumeCell<L, T> const& lhs, VolumeCell<L, T> const& rhs) -> bool {
-    return lhs.index == rhs.index;
-}
-
-} // namespace dvh
-} // namespace ltb
-
-namespace std {
-
-template <int L, typename T>
-struct hash<ltb::dvh::VolumeCell<L, T>> {
-    size_t operator()(ltb::dvh::VolumeCell<L, T> const& cell) const { return hash<glm::vec<L, int>>{}(cell.index); }
-};
-
-} // namespace std
-
-namespace ltb {
-namespace dvh {
-namespace {
-///
-/// \brief The PropogateFunctor struct
-///
-//struct PropogateFunctor {
-//    const GolBool* d_prev;
-//    const dim3     dim;
+//namespace ltb {
+//namespace dvh {
 //
-//    PropogateFunctor(const GolBool* d_prev_, const dim3 dim_) : d_prev(d_prev_), dim(dim_) {}
+//template <int L, typename T>
+//struct VolumeCell {
+//    Cell   index;
+//    glm::vec<L + 1, T> direction_and_distance = glm::vec<L + 1, T>(std::numeric_limits<T>::infinity());
 //
-//    ///
-//    /// \brief operator ()
-//    /// \param t
-//    ///
-//    template <typename Tuple>
-//    __device__ void operator()(Tuple t) const {
-//        // get neighbors
-//        uint idx = thrust::get<0>(t);
-//        uint x   = idx % dim.x;
-//        uint y   = idx / dim.x;
+//    explicit VolumeCell(Cell cell) : index(cell) {}
 //
-//        thrust::get<1>(t) = findNeighbors(d_prev, dim, x, y);
-//    }
+//    explicit VolumeCell(Cell cell, glm::vec<L + 1, T> dir_and_dist)
+//        : index(cell), direction_and_distance(dir_and_dist) {}
 //};
-} // namespace
+//
+//template <int L, typename T>
+//LTB_CUDA_FUNC auto operator==(VolumeCell<L, T> const& lhs, VolumeCell<L, T> const& rhs) -> bool {
+//    return lhs.index == rhs.index;
+//}
+//
+//} // namespace dvh
+//} // namespace ltb
+//
+//namespace std {
+//
+//template <int L, typename T>
+//struct hash<ltb::dvh::VolumeCell<L, T>> {
+//    size_t operator()(ltb::dvh::VolumeCell<L, T> const& cell) const { return hash<Cell>{}(cell.index); }
+//};
+//
+//} // namespace std
+
+namespace ltb {
+namespace dvh {
 
 template <int L, typename T>
-class DistanceVolumeHierarchyGpu<L, T>::Impl {
-public:
-    explicit Impl(T base_resolution, int max_level = std::numeric_limits<int>::max());
-
-    void clear();
-
-    void actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries);
-
-    auto levels() const -> LevelMap<SparseVolumeMap> const&;
-
-    auto base_resolution() const -> T;
-
-    auto resolution(int level_index) const -> T;
-
-    auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
-
-    constexpr static int base_level = 0;
-
-private:
-    T   base_resolution_;
-    int max_level_;
-    int lowest_level_ = 0;
-
-    LevelMap<thrust::device_vector<VolumeCell<L, T>>> gpu_levels_;
-
-    LevelMap<SparseVolumeMap> cpu_levels_;
-    LevelMap<CellSet>         roots_;
-};
-
-template <int L, typename T>
-DistanceVolumeHierarchyGpu<L, T>::Impl::Impl(T base_resolution, int max_level)
+DistanceVolumeHierarchyGpu<L, T>::DistanceVolumeHierarchyGpu(T base_resolution, int max_level)
     : base_resolution_(base_resolution), max_level_(max_level) {
     clear();
 }
 
 template <int L, typename T>
-void DistanceVolumeHierarchyGpu<L, T>::Impl::clear() {
+void DistanceVolumeHierarchyGpu<L, T>::clear() {
     cpu_levels_.clear();
-    gpu_levels_.clear();
 }
 
-#if 1
-
 template <int L, typename T>
-void DistanceVolumeHierarchyGpu<L, T>::Impl::actually_add_volume(
-    std::vector<sdf::Geometry<L, T> const*> const& geometries) {
-    if (geometries.empty()) {
-        return;
-    }
-
-    auto volume_bounds = sdf::AABB<L, T>();
-
-    for (auto const* geometry : geometries) {
-        auto aabb     = geometry->bounding_box();
-        volume_bounds = sdf::expand(volume_bounds, aabb.min_point);
-        volume_bounds = sdf::expand(volume_bounds, aabb.max_point);
-    }
-
-    add_roots_for_bounds(volume_bounds);
-
-    // ///////////////////////////////////////////////// //
-
-    CellSet to_visit;
-    CellSet cells;
-
-    for (int level = roots_.begin()->first; level >= lowest_level_; --level) {
-
-        cells = std::move(to_visit);
-        to_visit.clear(); // Just to make sure
-
-        if (roots_.find(level) != roots_.end()) {
-            auto const& root_cells = roots_.at(level);
-            cells.insert(root_cells.begin(), root_cells.end());
-        }
-
-        auto level_resolution = resolution(level);
-        auto half_resolution  = level_resolution * T(0.5);
-        auto cell_corner_dist = glm::length(glm::vec<L, T>(half_resolution));
-
-        auto& distance_field = cpu_levels_[level];
-
-        for (const auto& cell : cells) {
-            auto const p = dvh::cell_center(cell, level_resolution);
-
-            auto min_dist     = std::numeric_limits<T>::infinity();
-            auto min_abs_dist = min_dist;
-
-            for (auto const* geometry : geometries) {
-                auto const dist     = geometry->distance_from(p);
-                auto const abs_dist = std::abs(dist);
-
-                if (should_replace_with(min_abs_dist, abs_dist, dist)) {
-                    min_dist     = dist;
-                    min_abs_dist = abs_dist;
-                }
-            }
-
-            // TODO: double check this logic for already existing cells with smaller distances
-            // (make sure children are still visited if necessary)
-            if (distance_field.find(cell) == distance_field.end()
-                || should_replace_with(std::abs(distance_field.at(cell)[L]), min_abs_dist, min_dist)) {
-                if (min_dist <= cell_corner_dist) {
-                    distance_field[cell] = glm::vec<L + 1, T>(p, min_dist);
-
-                    if (min_abs_dist <= cell_corner_dist && level > lowest_level_) {
-                        auto                                                     children = children_cells(cell);
-                        typedef typename std::vector<glm::vec<L, int>>::iterator iter_t;
-                        to_visit.insert(std::move_iterator<iter_t>(children.begin()),
-                                        std::move_iterator<iter_t>(children.end()));
-                    }
-                }
-            }
-        }
-    }
-}
-
-#else
-
-template <int L, typename T>
-void DistanceVolumeHierarchyGpu<L, T>::Impl::actually_add_volume(
-    std::vector<sdf::Geometry<L, T> const*> const& geometries) {
-
-    if (geometries.empty()) {
-        return;
-    }
-
-    //    std::size_t start = 0ul;
-
-    {
-        std::unordered_set<VolumeCell<L, T>> potential_cells;
-
-        for (auto const* geometry : geometries) {
-            auto aabb = geometry->bounding_box();
-
-            auto min_cell = get_cell(aabb.min_point, base_resolution_);
-            auto max_cell = get_cell(aabb.max_point, base_resolution_);
-
-            iterate(min_cell, max_cell, [&potential_cells](auto const& cell) { potential_cells.emplace(cell); });
-        }
-
-        thrust::host_vector<VolumeCell<L, T>> cpu_cells(std::make_move_iterator(potential_cells.begin()),
-                                                        std::make_move_iterator(potential_cells.end()));
-
-        auto& gpu_cells = gpu_levels_[0];
-        //        start           = gpu_cells.size();
-        gpu_cells.insert(gpu_cells.end(), cpu_cells.begin(), cpu_cells.end());
-    }
-}
-
-#endif
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::Impl::levels() const -> LevelMap<SparseVolumeMap> const& {
+auto DistanceVolumeHierarchyGpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
     return cpu_levels_;
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::Impl::base_resolution() const -> T {
+auto DistanceVolumeHierarchyGpu<L, T>::base_resolution() const -> T {
     return base_resolution_;
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::Impl::resolution(int level_index) const -> T {
+auto DistanceVolumeHierarchyGpu<L, T>::resolution(int level_index) const -> T {
     return base_resolution_ * std::pow<T>(2, level_index);
 }
 
 template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::Impl::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
+auto DistanceVolumeHierarchyGpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
 
     auto root_level = lowest_level_;
-    auto min_cell   = glm::vec<L, int>();
-    auto max_cell   = glm::vec<L, int>();
-    auto dimensions = glm::vec<L, int>(std::numeric_limits<int>::max());
+    auto min_cell   = Cell();
+    auto max_cell   = Cell();
+    auto dimensions = Cell(std::numeric_limits<int>::max());
 
     for (int level = root_level; level < max_level_; ++level) {
         auto level_resolution = resolution(level);
@@ -282,38 +117,9 @@ auto DistanceVolumeHierarchyGpu<L, T>::Impl::add_roots_for_bounds(const sdf::AAB
         dimensions = level_dimensions;
     }
 
-    auto& roots = roots_[root_level];
+    auto& roots = cpu_roots_[root_level];
 
     iterate(min_cell, max_cell, [&roots](auto const& cell) { roots.emplace(cell); });
-}
-
-template <int L, typename T>
-DistanceVolumeHierarchyGpu<L, T>::DistanceVolumeHierarchyGpu(T base_resolution, int max_level)
-    : impl_(std::make_shared<Impl>(base_resolution, max_level)) {}
-
-template <int L, typename T>
-void DistanceVolumeHierarchyGpu<L, T>::clear() {
-    impl_->clear();
-}
-
-template <int L, typename T>
-void DistanceVolumeHierarchyGpu<L, T>::actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) {
-    impl_->actually_add_volume(geometries);
-}
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::levels() const -> LevelMap<SparseVolumeMap> const& {
-    return impl_->levels();
-}
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::base_resolution() const -> T {
-    return impl_->base_resolution();
-}
-
-template <int L, typename T>
-auto DistanceVolumeHierarchyGpu<L, T>::resolution(int level_index) const -> T {
-    return impl_->resolution(level_index);
 }
 
 template class DistanceVolumeHierarchyGpu<2, float>;

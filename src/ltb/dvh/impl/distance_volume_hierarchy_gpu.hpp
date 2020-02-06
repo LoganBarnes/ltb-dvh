@@ -28,6 +28,7 @@
 // external
 #include <cuda_runtime.h>
 #include <glm/gtx/hash.hpp>
+#include <thrust/device_vector.h>
 
 // standard
 #include <algorithm>
@@ -44,8 +45,11 @@ namespace dvh {
 template <int L, typename T>
 class DistanceVolumeHierarchyGpu {
 public:
-    using SparseVolumeMap = std::unordered_map<glm::vec<L, int>, glm::vec<L + 1, T>>;
-    using CellSet         = std::unordered_set<glm::vec<L, int>>;
+    using Cell    = glm::vec<L, int>;
+    using CellSet = std::unordered_set<Cell>;
+    template <typename V>
+    using CellMap         = std::unordered_map<Cell, V>;
+    using SparseVolumeMap = std::unordered_map<Cell, glm::vec<L + 1, T>>;
     template <typename V>
     using LevelMap = std::map<int, V, std::greater<int>>;
 
@@ -72,40 +76,29 @@ public:
 
     auto resolution(int level_index) const -> T;
 
-    constexpr static int base_level = 0;
+    constexpr static int base_level       = 0;
+    constexpr static T   not_fully_inside = std::numeric_limits<T>::infinity();
 
 private:
-    class Impl;
-    std::shared_ptr<Impl> impl_;
+    T   base_resolution_;
+    int max_level_;
+    int lowest_level_ = 0;
 
     LevelMap<SparseVolumeMap> cpu_levels_;
+    LevelMap<CellSet>         cpu_roots_;
 
-    auto actually_add_volume(std::vector<sdf::Geometry<L, T> const*> const& geometries) -> void;
+    LevelMap<SparseVolumeMap> gpu_cells_;
+    LevelMap<SparseVolumeMap> gpu_values_;
+
+    auto actually_add_volume(sdf::Geometry<L, T> const* cpu_geometries,
+                             sdf::Geometry<L, T> const* gpu_geometries,
+                             std::size_t                num_geometries) -> void;
+
+    auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
+    auto actually_subtract_volumes(sdf::Geometry<L, T> const* cpu_geometries,
+                                   sdf::Geometry<L, T> const* gpu_geometries,
+                                   std::size_t                num_geometries) -> void;
 };
-
-template <int L, typename T>
-template <typename Geometry, typename>
-void DistanceVolumeHierarchyGpu<L, T>::add_volume(std::vector<Geometry> const& geometries) {
-    std::vector<sdf::Geometry<L, T> const*> geometry_pointers(geometries.size(), nullptr);
-
-    std::transform(geometries.begin(), geometries.end(), geometry_pointers.begin(), [](const auto& geometry) {
-        return &geometry;
-    });
-
-    actually_add_volume(geometry_pointers);
-}
-
-template <int L, typename T>
-template <typename Geometry, typename>
-void DistanceVolumeHierarchyGpu<L, T>::subtract_volume(std::vector<Geometry> const& geometries) {
-    std::vector<sdf::Geometry<L, T> const*> geometry_pointers(geometries.size(), nullptr);
-
-    std::transform(geometries.begin(), geometries.end(), geometry_pointers.begin(), [](const auto& geometry) {
-        return &geometry;
-    });
-
-    (void)geometry_pointers;
-}
 
 template <int L, typename T = float>
 using DistanceVolumeHierarchy = DistanceVolumeHierarchyGpu<L, T>;

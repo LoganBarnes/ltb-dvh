@@ -28,39 +28,41 @@
 namespace ltb {
 namespace sdf {
 
-template <int L, typename T = float>
-struct OrientedTriangle : public Geometry<L, T> {
-    glm::vec<L, T> p0;
-    glm::vec<L, T> p1;
-    glm::vec<L, T> p2;
+template <typename T = float>
+struct OrientedTriangle : public Geometry<3, T> {
+    glm::vec<3, T> p0;
+    glm::vec<3, T> p1;
+    glm::vec<3, T> p2;
 
-    explicit OrientedTriangle(glm::vec<L, T> point0, glm::vec<L, T> point1, glm::vec<L, T> point2)
+    LTB_CUDA_FUNC OrientedTriangle() = default;
+    LTB_CUDA_FUNC OrientedTriangle(glm::vec<3, T> point0, glm::vec<3, T> point1, glm::vec<3, T> point2)
         : p0(point0), p1(point1), p2(point2) {}
-    ~OrientedTriangle() override = default;
 
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
+    LTB_CUDA_FUNC ~OrientedTriangle() = default;
+
+    LTB_CUDA_FUNC auto vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T> override;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<3, T> const& point) const -> T override;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<3, T> override;
 };
 
-template <int L, typename T = float>
-auto make_oriented_triangle(glm::vec<L, T> start, glm::vec<L, T> end) -> OrientedTriangle<L, T> {
-    return OrientedTriangle<L, T>{start, end};
+template <typename T = float>
+LTB_CUDA_FUNC auto make_oriented_triangle(glm::vec<3, T> start, glm::vec<3, T> end) -> OrientedTriangle<T> {
+    return OrientedTriangle<T>{start, end};
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<L, T>::vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
-    return make_triangle(start, end).vector_from(point);
+template <typename T>
+LTB_CUDA_FUNC auto OrientedTriangle<T>::vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T> {
+    return make_triangle(p0, p1, p2).vector_from(point);
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<L, T>::distance_from(glm::vec<L, T> const& point) const -> T {
-    return std::runtime_error("Unimplemented");
+template <typename T>
+LTB_CUDA_FUNC auto OrientedTriangle<T>::distance_from(glm::vec<3, T> const& point) const -> T {
+    return make_triangle(p0, p1, p2).distance_from(point);
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<L, T>::bounding_box() const -> AABB<L, T> {
-    return make_triangle(start, end).bounding_box();
+template <typename T>
+LTB_CUDA_FUNC auto OrientedTriangle<T>::bounding_box() const -> AABB<3, T> {
+    return make_triangle(p0, p1, p2).bounding_box();
 }
 
 } // namespace sdf

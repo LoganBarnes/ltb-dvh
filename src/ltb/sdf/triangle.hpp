@@ -41,9 +41,11 @@ struct Triangle : public Geometry<L, T> {
     glm::vec<L, T> p1;
     glm::vec<L, T> p2;
 
-    explicit Triangle(glm::vec<L, T> point0, glm::vec<L, T> point1, glm::vec<L, T> point2)
+    LTB_CUDA_FUNC Triangle() = default;
+    LTB_CUDA_FUNC Triangle(glm::vec<L, T> point0, glm::vec<L, T> point1, glm::vec<L, T> point2)
         : p0(point0), p1(point1), p2(point2) {}
-    ~Triangle() override = default;
+
+    LTB_CUDA_FUNC ~Triangle() = default;
 
     LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
     LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
@@ -51,13 +53,13 @@ struct Triangle : public Geometry<L, T> {
 };
 
 template <int L, typename T = float>
-auto make_triangle(glm::vec<L, T> p0, glm::vec<L, T> p1, glm::vec<L, T> p2) -> Triangle<L, T> {
+LTB_CUDA_FUNC auto make_triangle(glm::vec<L, T> p0, glm::vec<L, T> p1, glm::vec<L, T> p2) -> Triangle<L, T> {
     return Triangle<L, T>{p0, p1, p2};
 }
 
 template <int L, typename T>
 LTB_CUDA_FUNC auto Triangle<L, T>::vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
-    throw std::runtime_error("Unimplemented");
+    return point;
 }
 
 template <int L, typename T>

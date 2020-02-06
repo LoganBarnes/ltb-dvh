@@ -35,19 +35,20 @@ namespace sdf {
 
 template <int L, typename T = float>
 struct Line : public Geometry<L, T> {
-    glm::vec<L, T> start;
-    glm::vec<L, T> end;
+    glm::vec<L, T> start = {};
+    glm::vec<L, T> end   = {};
 
-    explicit Line(glm::vec<L, T> from, glm::vec<L, T> to) : start(from), end(to) {}
-    ~Line() override = default;
+    LTB_CUDA_FUNC Line() = default;
+    LTB_CUDA_FUNC Line(glm::vec<L, T> from, glm::vec<L, T> to) : start(from), end(to) {}
 
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
+    LTB_CUDA_FUNC ~Line();
+    A_FUNC auto        vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> override;
     LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T override;
     LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T> override;
 };
 
 template <int L, typename T = float>
-auto make_line(glm::vec<L, T> start, glm::vec<L, T> end) -> Line<L, T> {
+LTB_CUDA_FUNC auto make_line(glm::vec<L, T> start, glm::vec<L, T> end) -> Line<L, T> {
     return Line<L, T>{start, end};
 }
 

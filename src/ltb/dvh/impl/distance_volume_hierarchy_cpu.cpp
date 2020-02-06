@@ -169,9 +169,9 @@ template <int L, typename T>
 auto DistanceVolumeHierarchyCpu<L, T>::add_roots_for_bounds(const sdf::AABB<L, T>& aabb) -> void {
 
     auto root_level = lowest_level_;
-    auto min_cell   = glm::vec<L, int>();
-    auto max_cell   = glm::vec<L, int>();
-    auto dimensions = glm::vec<L, int>(std::numeric_limits<int>::max());
+    auto min_cell   = Cell();
+    auto max_cell   = Cell();
+    auto dimensions = Cell(std::numeric_limits<int>::max());
 
     for (int level = root_level; level < max_level_; ++level) {
         auto level_resolution = resolution(level);
