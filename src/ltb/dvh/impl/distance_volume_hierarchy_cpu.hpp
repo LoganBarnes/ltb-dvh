@@ -61,7 +61,7 @@ public:
     void add_volume(std::vector<Geometry> const& geometries);
 
     template <typename Geometry>
-    void subtract_volume(std::vector<Geometry> const& geometries);
+    void subtract_volumes(std::vector<Geometry> const& geometries);
 
     auto levels() const -> LevelMap<SparseVolumeMap> const&;
 

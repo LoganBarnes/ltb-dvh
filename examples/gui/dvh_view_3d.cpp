@@ -306,7 +306,7 @@ void DvhView3d::reset_volumes() {
 
     {
         util::ScopedTimer timer("Subtractive computation time", ss);
-        dvh_.subtract_volume(subtractive_lines_);
+        dvh_.subtract_volumes(subtractive_lines_);
     }
     computation_time_message_ = ss.str();
 }

@@ -199,10 +199,10 @@ void DvhView2d::reset_volumes() {
         util::ScopedTimer timer("Subtractive computation time", ss);
 
         for (auto const& box : subtractive_boxes_) {
-            dvh_.subtract_volume(decltype(subtractive_boxes_){box});
+            dvh_.subtract_volumes(decltype(subtractive_boxes_){box});
         }
 
-        dvh_.subtract_volume(subtractive_lines_);
+        dvh_.subtract_volumes(subtractive_lines_);
     }
     computation_time_message_ = ss.str();
 }
