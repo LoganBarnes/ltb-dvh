@@ -46,10 +46,12 @@ template <int L, typename T>
 class DistanceVolumeHierarchyGpu {
 public:
     using Cell    = glm::vec<L, int>;
+    using VecDist = glm::vec<L + 1, T>;
+
     using CellSet = std::unordered_set<Cell>;
     template <typename V>
     using CellMap         = std::unordered_map<Cell, V>;
-    using SparseVolumeMap = std::unordered_map<Cell, glm::vec<L + 1, T>>;
+    using SparseVolumeMap = std::unordered_map<Cell, VecDist>;
     template <typename V>
     using LevelMap = std::map<int, V, std::greater<int>>;
 
@@ -85,8 +87,9 @@ private:
     LevelMap<SparseVolumeMap> cpu_levels_;
     LevelMap<CellSet>         cpu_roots_;
 
-    LevelMap<SparseVolumeMap> gpu_cells_;
-    LevelMap<SparseVolumeMap> gpu_values_;
+    LevelMap<thrust::device_vector<Cell>>    gpu_cells_;
+    LevelMap<thrust::device_vector<VecDist>> gpu_values_;
+    LevelMap<thrust::device_vector<Cell>>    gpu_roots_;
 
     auto add_roots_for_bounds(sdf::AABB<L, T> const& aabb) -> void;
 };
