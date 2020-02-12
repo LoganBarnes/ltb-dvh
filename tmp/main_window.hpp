@@ -1,5 +1,5 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
-// LTB Geometry Visualization Server
+// LTB Distance Volume Hierarchy
 // Copyright (c) 2020 Logan Barnes - All Rights Reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,41 +22,40 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// external
-#include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-#include <Magnum/SceneGraph/Object.h>
+// project
+#include "dvh_renderable.hpp"
+#include "ltb/gvs/display/gui/error_alert.hpp"
+#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
 
-namespace ltb {
-namespace gvs {
+namespace ltb::example {
 
-struct Ray {
-    Magnum::Vector3 origin;
-    Magnum::Vector3 direction;
+class MainWindow : public gvs::ImGuiMagnumApplication {
+public:
+    explicit MainWindow(const Arguments& arguments);
+    ~MainWindow() override;
+
+private:
+    void update() override;
+    void render(const gvs::CameraPackage& camera_package) const override;
+    void configure_gui() override;
+
+    void resize(const Magnum::Vector2i& viewport) override;
+
+    void handleKeyPressEvent(KeyEvent& event) override;
+    void handleKeyReleaseEvent(KeyEvent& event) override;
+
+    void handleMousePressEvent(MouseEvent& event) override;
+    void handleMouseReleaseEvent(MouseEvent& event) override;
+    void handleMouseMoveEvent(MouseMoveEvent& event) override;
+
+    // General Info
+    std::string gl_version_str_;
+    std::string gl_renderer_str_;
+
+    // Errors
+    std::shared_ptr<gvs::ErrorAlert> error_alert_;
+
+    DvhRenderable dvh_renderable_;
 };
 
-struct CameraPackage {
-    virtual ~CameraPackage() = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> object;
-    Magnum::SceneGraph::Camera3D*                                          camera = nullptr;
-
-    void set_camera(Magnum::SceneGraph::Camera3D* cam, const Magnum::Vector2i& viewport);
-
-    void update_viewport(const Magnum::Vector2i& viewport);
-
-    Ray get_camera_ray_from_window_pos(const Magnum::Vector2& mouse_position);
-};
-
-struct OrbitCameraPackage : CameraPackage {
-    ~OrbitCameraPackage() override = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> zoom_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> rotation_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> translation_object;
-
-    void update_object();
-};
-
-} // namespace gvs
-} // namespace ltb
+} // namespace ltb::example

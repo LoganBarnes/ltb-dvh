@@ -88,6 +88,11 @@ if (LTB_BUILD_DVH_EXAMPLES)
 
     ### Examples ###
     add_subdirectory(examples)
+
+
+    if (CMAKE_CUDA_COMPILER)
+        add_subdirectory(tmp)
+    endif ()
 else ()
 
     ### Util ###

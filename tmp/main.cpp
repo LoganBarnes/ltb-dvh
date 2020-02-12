@@ -1,5 +1,5 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
-// LTB Geometry Visualization Server
+// LTB Distance Volume Hierarchy
 // Copyright (c) 2020 Logan Barnes - All Rights Reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,43 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "main_window.hpp"
 
-// external
-#include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-#include <Magnum/SceneGraph/Object.h>
-
-namespace ltb {
-namespace gvs {
-
-struct Ray {
-    Magnum::Vector3 origin;
-    Magnum::Vector3 direction;
-};
-
-struct CameraPackage {
-    virtual ~CameraPackage() = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> object;
-    Magnum::SceneGraph::Camera3D*                                          camera = nullptr;
-
-    void set_camera(Magnum::SceneGraph::Camera3D* cam, const Magnum::Vector2i& viewport);
-
-    void update_viewport(const Magnum::Vector2i& viewport);
-
-    Ray get_camera_ray_from_window_pos(const Magnum::Vector2& mouse_position);
-};
-
-struct OrbitCameraPackage : CameraPackage {
-    ~OrbitCameraPackage() override = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> zoom_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> rotation_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> translation_object;
-
-    void update_object();
-};
-
-} // namespace gvs
-} // namespace ltb
+auto main(int argc, char* argv[]) -> int {
+    ltb::example::MainWindow app({argc, argv});
+    return app.exec();
+}

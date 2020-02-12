@@ -1,5 +1,5 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
-// LTB Geometry Visualization Server
+// LTB Distance Volume Hierarchy
 // Copyright (c) 2020 Logan Barnes - All Rights Reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,41 +22,26 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// external
-#include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-#include <Magnum/SceneGraph/Object.h>
+#include "gl_buffer.hpp"
 
 namespace ltb {
-namespace gvs {
+namespace cuda {
 
-struct Ray {
-    Magnum::Vector3 origin;
-    Magnum::Vector3 direction;
+template <typename T>
+class GLBufferMapGuard {
+public:
+    GLBufferMapGuard(GLBuffer<T>& interop_buffer) : interop_buffer(interop_buffer) { interop_buffer.map_for_cuda(); }
+    ~GLBufferMapGuard() { interop_buffer.unmap_from_cuda(); }
+
+private:
+    GLBuffer<T>& interop_buffer;
 };
 
-struct CameraPackage {
-    virtual ~CameraPackage() = default;
+// Allows the guard to be created without having to specify the template type
+template <typename T>
+GLBufferMapGuard<T> make_gl_buffer_map_guard(GLBuffer<T>& interop_buffer) {
+    return GLBufferMapGuard<T>(interop_buffer);
+}
 
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> object;
-    Magnum::SceneGraph::Camera3D*                                          camera = nullptr;
-
-    void set_camera(Magnum::SceneGraph::Camera3D* cam, const Magnum::Vector2i& viewport);
-
-    void update_viewport(const Magnum::Vector2i& viewport);
-
-    Ray get_camera_ray_from_window_pos(const Magnum::Vector2& mouse_position);
-};
-
-struct OrbitCameraPackage : CameraPackage {
-    ~OrbitCameraPackage() override = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> zoom_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> rotation_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> translation_object;
-
-    void update_object();
-};
-
-} // namespace gvs
+} // namespace cuda
 } // namespace ltb
