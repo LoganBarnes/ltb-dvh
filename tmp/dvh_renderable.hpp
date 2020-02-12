@@ -19,6 +19,7 @@
 // project
 #include "gl_buffer.hpp"
 #include "ltb/gvs/display/camera_package.hpp"
+#include "ltb/gvs/display/shaders/points_shader.hpp"
 
 // external
 #include <glm/glm.hpp>
@@ -49,6 +50,8 @@ public:
     int   viewport_height        = 1;
 
 private:
+    gvs::PointsShader shader_;
+
     // gl::StandardPipeline glpl_; ///< collection of OpenGL objects for rendering
     std::unique_ptr<cuda::GLBuffer<Particle>> interop_particles_; ///< GPU buffer shared by OpenGL and the CUDA
 };

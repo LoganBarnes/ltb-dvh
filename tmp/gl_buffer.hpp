@@ -44,16 +44,22 @@ public:
     explicit GLBuffer(const std::vector<T>&          initial_data,
                       Magnum::GL::Buffer::TargetHint type  = Magnum::GL::Buffer::TargetHint::Array,
                       Magnum::GL::BufferUsage        usage = Magnum::GL::BufferUsage::DynamicDraw);
+
     ~GLBuffer();
 
-    void map_for_cuda();
-    void unmap_from_cuda();
+    GLBuffer(GLBuffer const&)     = delete;
+    GLBuffer(GLBuffer&&) noexcept = delete;
+    GLBuffer& operator=(GLBuffer const&) = delete;
+    GLBuffer& operator=(GLBuffer&&) noexcept = delete;
 
-    T*                        cuda_buffer(std::size_t* size) const;
-    const Magnum::GL::Buffer& gl_buffer() const;
+    auto map_for_cuda() -> void;
+    auto unmap_from_cuda() -> void;
 
-    const std::size_t& size() const;
-    bool               empty() const;
+    auto cuda_buffer(std::size_t* size) const -> T const*;
+    auto gl_buffer() const -> Magnum::GL::Buffer const&;
+
+    auto size() const -> const std::size_t&;
+    auto empty() const -> bool;
 
 private:
     Magnum::GL::Buffer     gl_buffer_;
@@ -81,7 +87,7 @@ GLBuffer<T>::~GLBuffer() {
 }
 
 template <typename T>
-void GLBuffer<T>::map_for_cuda() {
+auto GLBuffer<T>::map_for_cuda() -> void {
     if (!mapped_for_cuda_) {
         CUDA_CHECK(cudaGraphicsMapResources(1, &graphics_resource_));
         mapped_for_cuda_ = true;
@@ -89,7 +95,7 @@ void GLBuffer<T>::map_for_cuda() {
 }
 
 template <typename T>
-void GLBuffer<T>::unmap_from_cuda() {
+auto GLBuffer<T>::unmap_from_cuda() -> void {
     if (mapped_for_cuda_) {
         CUDA_CHECK(cudaGraphicsUnmapResources(1, &graphics_resource_));
         mapped_for_cuda_ = false;
@@ -97,7 +103,7 @@ void GLBuffer<T>::unmap_from_cuda() {
 }
 
 template <typename T>
-T* GLBuffer<T>::cuda_buffer(std::size_t* size) const {
+auto GLBuffer<T>::cuda_buffer(std::size_t* size) const -> T const* {
     T*          devPtr    = nullptr;
     std::size_t byte_size = 0;
     CUDA_CHECK(cudaGraphicsResourceGetMappedPointer(reinterpret_cast<void**>(&devPtr), &byte_size, graphics_resource_));
@@ -106,13 +112,18 @@ T* GLBuffer<T>::cuda_buffer(std::size_t* size) const {
 }
 
 template <typename T>
-const Magnum::GL::Buffer& GLBuffer<T>::gl_buffer() const {
+auto GLBuffer<T>::gl_buffer() const -> Magnum::GL::Buffer const& {
     return gl_buffer_;
 }
 
 template <typename T>
-const std::size_t& GLBuffer<T>::size() const {
+auto GLBuffer<T>::size() const -> std::size_t const& {
     return size_;
+}
+
+template <typename T>
+auto GLBuffer<T>::empty() const -> bool {
+    return size() == 0ul;
 }
 
 } // namespace cuda
