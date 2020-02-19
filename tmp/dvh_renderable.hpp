@@ -17,9 +17,10 @@
 #pragma once
 
 // project
+#include "Magnum/GL/Mesh.h"
 #include "gl_buffer.hpp"
 #include "ltb/gvs/display/camera_package.hpp"
-#include "ltb/gvs/display/shaders/points_shader.hpp"
+#include "ltb/gvs/display/shaders/box_shader.hpp"
 
 // external
 #include <glm/glm.hpp>
@@ -29,11 +30,6 @@
 
 namespace ltb {
 namespace example {
-
-struct Particle {
-    glm::vec3 position;
-    glm::vec3 velocity;
-};
 
 /**
  * The particle update and render logic.
@@ -46,14 +42,11 @@ public:
     void render(const gvs::CameraPackage& camera_package) const;
     void configure_gui();
 
-    float global_particle_radius = 0.02f;
-    int   viewport_height        = 1;
-
 private:
-    gvs::PointsShader shader_;
+    mutable gvs::BoxShader   shader_;
+    mutable Magnum::GL::Mesh mesh_;
 
-    // gl::StandardPipeline glpl_; ///< collection of OpenGL objects for rendering
-    std::unique_ptr<cuda::GLBuffer<Particle>> interop_particles_; ///< GPU buffer shared by OpenGL and the CUDA
+    std::unique_ptr<cuda::GLBuffer<glm::vec4>> interop_boxes_; ///< GPU buffer shared by OpenGL and the CUDA
 };
 
 } // namespace example

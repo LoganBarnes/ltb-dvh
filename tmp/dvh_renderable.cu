@@ -56,46 +56,33 @@ namespace {
 } // namespace
 
 DvhRenderable::DvhRenderable() {
-    // create 1000000 random particles within a 70x70x70 cube
     {
-        std::mt19937                          gen(std::random_device{}());
-        std::uniform_real_distribution<float> dist(-35.f, 35.f);
-        std::vector<Particle>                 particles(1000000);
-
-        for (auto& particle : particles) {
-            particle = {{dist(gen), dist(gen), dist(gen)}, glm::normalize(glm::vec3(dist(gen), dist(gen), dist(gen)))};
-        }
-
-        interop_particles_ = std::make_unique<cuda::GLBuffer<Particle>>(particles);
+        std::vector<glm::vec4> particles(1000000, glm::vec4(1.f));
+        interop_boxes_ = std::make_unique<cuda::GLBuffer<glm::vec4>>(particles);
     }
 
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    //    glpl_.program = std::make_shared<gl::Program>(gl::points_vert(), gl::points_frag());
-    //    glpl_.vao     = std::make_shared<gl::VertexArray>(*glpl_.program,
-    //                                                  interop_particles_->gl_buffer(),
-    //                                                  sizeof(Particle),
-    //                                                  gl::pos_float_vao_elements());
+    mesh_.addVertexBuffer(interop_boxes_->gl_buffer(), 0, gvs::BoxShader::CenterAndRadius());
+    mesh_.setCount(interop_boxes_->size());
+    mesh_.setPrimitive(Magnum::GL::MeshPrimitive::Points);
 }
 
-void DvhRenderable::update(double time_step) {
-    auto guard = cuda::make_gl_buffer_map_guard(*interop_particles_);
+void DvhRenderable::update(double /*time_step*/) {
+    auto guard = cuda::make_gl_buffer_map_guard(*interop_boxes_);
     //    gpu::launch_default(update_particles,
     //                        interop_particles_->size(),
     //                        *interop_particles_,
     //                        static_cast<float>(time_step));
 }
 
-void DvhRenderable::render(const gvs::CameraPackage& /*camera_package*/) const {
-    // OpenGL rendering to test the OpenGL side of things
-    //    glpl_.program->use([&] {
-    //        glpl_.program->set_uniform(camera.get_projection_view_matrix(), "world_from_local");
-    //        glpl_.program->set_uniform(viewport_height, "view_height");
-    //        glpl_.program->set_uniform(camera.get_projection_matrix(), "projection_from_view");
-    //        glpl_.program->set_uniform(global_particle_radius, "point_radius");
-    //        glpl_.program->set_uniform(camera.get_view_matrix(), "view_from_world");
-    //
-    //        glpl_.vao->draw(GL_POINTS, 0, static_cast<int>(interop_particles_->size()));
-    //    });
+void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
+    auto projection_from_world
+        = camera_package.camera->projectionMatrix() * camera_package.object.transformationMatrix();
+
+    shader_.set_projection_from_world_matrix(projection_from_world)
+        .set_coloring(gvs::Coloring::Normals)
+        .set_shading(gvs::Shading::UniformColor);
+
+    mesh_.draw(shader_);
 }
 
 void DvhRenderable::configure_gui() {}

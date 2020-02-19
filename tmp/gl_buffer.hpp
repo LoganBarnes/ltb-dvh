@@ -57,6 +57,7 @@ public:
 
     auto cuda_buffer(std::size_t* size) const -> T const*;
     auto gl_buffer() const -> Magnum::GL::Buffer const&;
+    auto gl_buffer() -> Magnum::GL::Buffer&;
 
     auto size() const -> const std::size_t&;
     auto empty() const -> bool;
@@ -113,6 +114,11 @@ auto GLBuffer<T>::cuda_buffer(std::size_t* size) const -> T const* {
 
 template <typename T>
 auto GLBuffer<T>::gl_buffer() const -> Magnum::GL::Buffer const& {
+    return gl_buffer_;
+}
+
+template <typename T>
+auto GLBuffer<T>::gl_buffer() -> Magnum::GL::Buffer& {
     return gl_buffer_;
 }
 
