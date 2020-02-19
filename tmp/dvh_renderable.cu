@@ -57,7 +57,7 @@ namespace {
 
 DvhRenderable::DvhRenderable() {
     {
-        std::vector<glm::vec4> particles(1000000, glm::vec4(1.f));
+        std::vector<glm::vec4> particles(10000, glm::vec4(0.f, 0.f, 0.f, 0.5f));
         interop_boxes_ = std::make_unique<cuda::GLBuffer<glm::vec4>>(particles);
     }
 
@@ -74,11 +74,14 @@ void DvhRenderable::update(double /*time_step*/) {
     //                        static_cast<float>(time_step));
 }
 
-void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
-    auto projection_from_world
-        = camera_package.camera->projectionMatrix() * camera_package.object.transformationMatrix();
+void DvhRenderable::render(const gvs::CameraPackage& /*camera_package*/) const {
+    //    auto projection_from_world
+    //        = camera_package.camera->projectionMatrix() * camera_package.object.transformationMatrix();
 
-    shader_.set_projection_from_world_matrix(projection_from_world)
+    // TODO: Figure out camera transform
+
+    shader_
+        //    shader_.set_projection_from_world_matrix(camera_package.camera->projectionMatrix())
         .set_coloring(gvs::Coloring::Normals)
         .set_shading(gvs::Shading::UniformColor);
 
