@@ -28,12 +28,16 @@
 // external
 #include <Magnum/Math/Vector2.h>
 #include <glm/ext/scalar_constants.hpp>
+#include <glm/gtx/hash.hpp>
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
 
 // standard
 #include <algorithm>
 #include <random>
+#include <unordered_set>
+
+//#define NOT_UNIQUE
 
 namespace ltb {
 namespace example {
@@ -52,13 +56,25 @@ struct DistanceFromCameraComparator {
     float     level_0_resolution;
 };
 
+//auto to_1d_index(glm::ivec2 const& index, glm::ivec2 const& dimensions) -> std::size_t {
+//    return static_cast<std::size_t>(index.y) * static_cast<std::size_t>(dimensions.x) + index.x;
+//}
+//
+//auto to_1d_index(glm::ivec3 const& index, glm::ivec3 const& min_index, glm::ivec3 const& max_index) -> std::size_t {
+//    return index.z
+//}
+
 auto create_cells() {
-    constexpr auto index_radius = 20.f;
+    constexpr auto index_radius = 10.f;
     constexpr auto num_points   = 1000000u;
 
     // Create a bunch of uniformly distributed points on a sphere
-    std::vector<glm::vec3> points;
+#ifdef NOT_UNIQUE
+    std::vector<glm::ivec3> points;
     points.reserve(num_points);
+#else
+    std::unordered_set<glm::ivec3> points;
+#endif
     {
         float                                 u, theta, coeff;
         std::mt19937                          gen{std::random_device{}()};
@@ -71,14 +87,19 @@ auto create_cells() {
             theta = theta_dist(gen);
             coeff = std::sqrt(1.f - u * u);
 
-            points.emplace_back(coeff * std::cos(theta), coeff * std::sin(theta), u);
+            auto p = glm::vec3(coeff * std::cos(theta), coeff * std::sin(theta), u);
+#ifdef NOT_UNIQUE
+            points.emplace_back(glm::ivec3(glm::round(p * index_radius)));
+#else
+            points.emplace(glm::ivec3(glm::round(p * index_radius)));
+#endif
         }
     }
 
     std::vector<Cell> cells(points.size());
 
-    std::transform(points.begin(), points.end(), cells.begin(), [](const auto& p3) {
-        return Cell{glm::ivec3(glm::round(p3 * index_radius)), glm::normalize(p3), 3};
+    std::transform(points.begin(), points.end(), cells.begin(), [](const auto& index) {
+        return Cell{index, glm::normalize(glm::vec3(index)), 3};
     });
 
     return cells;
@@ -136,8 +157,8 @@ void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
         .set_projection_from_view_matrix(camera_package.camera->projectionMatrix())
         .set_viewport_height(viewport_.y)
         .set_base_level_resolution(base_level_resolution_)
-        .set_coloring_type(dvh::CellColoring::Normals)
-        .set_shading_type(gvs::Shading::UniformColor);
+        .set_coloring_type(dvh::CellColoring::UniformColor)
+        .set_shading_type(gvs::Shading::Lambertian);
 
     mesh_.draw(shader_);
 
@@ -149,6 +170,9 @@ void DvhRenderable::configure_gui() {}
 
 void DvhRenderable::resize(glm::ivec2 viewport) {
     viewport_ = viewport;
+}
+void DvhRenderable::set_camera_position(glm::vec3 cam_pos) {
+    camera_position_ = cam_pos;
 }
 
 } // namespace example

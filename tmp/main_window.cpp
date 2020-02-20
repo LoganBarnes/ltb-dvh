@@ -68,6 +68,8 @@ MainWindow::MainWindow(const Arguments& arguments)
 MainWindow::~MainWindow() = default;
 
 void MainWindow::update() {
+    auto camera_pos = camera_package_.object.transformationMatrix() * Magnum::Vector4(0.f, 0.f, 0.f, 1.f);
+    dvh_renderable_.set_camera_position({camera_pos.x(), camera_pos.y(), camera_pos.z()});
     dvh_renderable_.update(0.01);
 }
 

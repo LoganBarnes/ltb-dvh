@@ -43,7 +43,7 @@ enum class CellColoring : int32_t {
 
 class CellShader : public Magnum::GL::AbstractShaderProgram {
 public:
-    typedef Magnum::GL::Attribute<0, Magnum::Vector4i> Index;
+    typedef Magnum::GL::Attribute<0, Magnum::Vector3i> Index;
     typedef Magnum::GL::Attribute<1, Magnum::Vector3>  VectorToClosestPoint;
     typedef Magnum::GL::Attribute<2, int>              Level;
 

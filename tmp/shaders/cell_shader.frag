@@ -30,9 +30,9 @@ const float INF = 1.f / 0.f;
 const int COLORING_POSITIONS     = 0;
 const int COLORING_NORMALS       = 1;
 const int COLORING_LEVEL         = 2;
-const int COLORING_DISTANCE      = 4;
-const int COLORING_UNIFORM_COLOR = 5;
-const int COLORING_WHITE         = 6;
+const int COLORING_DISTANCE      = 3;
+const int COLORING_UNIFORM_COLOR = 4;
+const int COLORING_WHITE         = 5;
 
 const int SHADING_UNIFORM_COLOR = 0;
 const int SHADING_LAMBERTIAN    = 1;
@@ -76,7 +76,7 @@ void main()
 
     vec2 gauss_space = point_space * 4.f;
 
-    float max_guass = guassian(vec2(0.f, 0.f), 1.f);;
+    float max_guass = guassian(vec2(0.f, 0.f), 1.f);
     float opacity   = guassian(gauss_space, 1.f) / max_guass;
 
     vec3 shape_color = { 1.f, 1.f, 1.f };

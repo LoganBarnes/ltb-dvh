@@ -58,6 +58,7 @@ public:
     void configure_gui();
 
     void resize(glm::ivec2 viewport);
+    void set_camera_position(glm::vec3 cam_pos);
 
 private:
     mutable dvh::CellShader  shader_;

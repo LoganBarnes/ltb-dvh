@@ -56,7 +56,8 @@ void main()
     gl_Position = projection_from_world * vec4(world_position, 1.f);
 
     // NOTE: must call glEnable(GL_PROGRAM_POINT_SIZE) for this to work
-    float point_radius = resolution;
+    float point_radius = length(vec3(resolution));
+    //    float point_radius = resolution;
     gl_PointSize = float(viewport_height) * projection_from_view[1][1] * point_radius / gl_Position.w;
 }
 
