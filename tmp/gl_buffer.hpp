@@ -56,6 +56,8 @@ public:
     auto unmap_from_cuda() -> void;
 
     auto cuda_buffer(std::size_t* size) const -> T const*;
+    auto cuda_buffer(std::size_t* size) -> T*;
+
     auto gl_buffer() const -> Magnum::GL::Buffer const&;
     auto gl_buffer() -> Magnum::GL::Buffer&;
 
@@ -105,6 +107,15 @@ auto GLBuffer<T>::unmap_from_cuda() -> void {
 
 template <typename T>
 auto GLBuffer<T>::cuda_buffer(std::size_t* size) const -> T const* {
+    T*          devPtr    = nullptr;
+    std::size_t byte_size = 0;
+    CUDA_CHECK(cudaGraphicsResourceGetMappedPointer(reinterpret_cast<void**>(&devPtr), &byte_size, graphics_resource_));
+    *size = byte_size / sizeof(T);
+    return devPtr;
+}
+
+template <typename T>
+auto GLBuffer<T>::cuda_buffer(std::size_t* size) -> T* {
     T*          devPtr    = nullptr;
     std::size_t byte_size = 0;
     CUDA_CHECK(cudaGraphicsResourceGetMappedPointer(reinterpret_cast<void**>(&devPtr), &byte_size, graphics_resource_));

@@ -30,6 +30,10 @@
 #include <Magnum/GL/Context.h>
 #include <imgui.h>
 
+static void initialize_dvh_resources() {
+    CORRADE_RESOURCE_INITIALIZE(ltb_dvh_display_RESOURCES)
+}
+
 using namespace Magnum;
 
 namespace ltb::example {
@@ -43,6 +47,8 @@ MainWindow::MainWindow(const Arguments& arguments)
       gl_version_str_(GL::Context::current().versionString()),
       gl_renderer_str_(GL::Context::current().rendererString()),
       error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")) {
+
+    initialize_dvh_resources();
 
     camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
     camera_package_.update_object();

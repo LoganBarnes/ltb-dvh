@@ -23,51 +23,48 @@
 #pragma once
 
 // project
-#include "Magnum/GL/Mesh.h"
-#include "gl_buffer.hpp"
-#include "ltb/cuda/cuda_func.hpp"
-#include "ltb/gvs/display/camera_package.hpp"
-#include "shaders/cell_shader.hpp"
-
-// external
-#include <glm/glm.hpp>
+#include "gl/opengl/opengl_types.h"
+#include "gpu/gl-interop/gl_buffer.h"
+#include "loop/scene/renderable_interface.h"
+#include "num/vec.h"
 
 // standard
 #include <memory>
 
-namespace ltb {
-namespace example {
+#define PROPER_CELL
 
+#ifdef PROPER_CELL
 struct Cell {
-    glm::ivec3 index;
-    glm::vec3  vector_to_closest_point;
-    int        level = 0;
-
-    LTB_CUDA_FUNC auto center_point(float level_0_resolution) const -> glm::vec3;
+    num::ivec3 index;
+    num::vec3  vector_to_closest_point;
+    float      distance_to_closest_point = 0.f;
+    int        level                     = 0;
 };
+#else
+using Cell = num::vec4; // center and radius
+#endif
 
 /**
  * The particle update and render logic.
  */
-class DvhRenderable {
+class RenderableDvh : public loop::RenderableInterface {
 public:
-    DvhRenderable();
+    explicit RenderableDvh(const num::ivec2& viewport);
 
     void update(double time_step);
-    void render(const gvs::CameraPackage& camera_package) const;
-    void configure_gui();
+    void on_render(const gl::Camera& camera,
+                   const loop::SceneItem& /*item*/,
+                   const loop::OpenGLSceneBackend& /*opengl_backend*/,
+                   const glm::mat4& /*full_transform*/) const override;
+    void resize(const num::ivec2& viewport);
+
+    void set_camera_pos(num::vec3 cam_pos);
 
 private:
-    mutable dvh::CellShader  shader_;
-    mutable Magnum::GL::Mesh mesh_;
+    gl::StandardPipeline                 glpl_; ///< collection of OpenGL objects for rendering
+    std::unique_ptr<gpu::GLBuffer<Cell>> interop_cells_; ///< GPU buffer shared by OpenGL and the CUDA
 
-    std::unique_ptr<cuda::GLBuffer<Cell>> interop_cells_; ///< GPU buffer shared by OpenGL and the CUDA
-
-    // TODO: hook this stuff up
     int       viewport_height_       = 1;
     float     base_level_resolution_ = 0.1f;
-    glm::vec3 camera_position_       = glm::vec3(0.f);
+    num::vec3 camera_position_       = num::vec3(0.f);
 };
-
-} // namespace example
-} // namespace ltb

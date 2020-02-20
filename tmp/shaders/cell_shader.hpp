@@ -23,51 +23,50 @@
 #pragma once
 
 // project
-#include "Magnum/GL/Mesh.h"
-#include "gl_buffer.hpp"
-#include "ltb/cuda/cuda_func.hpp"
-#include "ltb/gvs/display/camera_package.hpp"
-#include "shaders/cell_shader.hpp"
+#include "ltb/gvs/core/types.hpp"
 
 // external
-#include <glm/glm.hpp>
-
-// standard
-#include <memory>
+#include <Magnum/GL/AbstractShaderProgram.h>
+#include <Magnum/Math/Color.h>
 
 namespace ltb {
-namespace example {
+namespace dvh {
 
-struct Cell {
-    glm::ivec3 index;
-    glm::vec3  vector_to_closest_point;
-    int        level = 0;
-
-    LTB_CUDA_FUNC auto center_point(float level_0_resolution) const -> glm::vec3;
+enum class CellColoring : int32_t {
+    Positions = 0,
+    Normals,
+    Level,
+    Distance,
+    UniformColor,
+    White,
 };
 
-/**
- * The particle update and render logic.
- */
-class DvhRenderable {
+class CellShader : public Magnum::GL::AbstractShaderProgram {
 public:
-    DvhRenderable();
+    typedef Magnum::GL::Attribute<0, Magnum::Vector4i> Index;
+    typedef Magnum::GL::Attribute<1, Magnum::Vector3>  VectorToClosestPoint;
+    typedef Magnum::GL::Attribute<2, int>              Level;
 
-    void update(double time_step);
-    void render(const gvs::CameraPackage& camera_package) const;
-    void configure_gui();
+    explicit CellShader();
+
+    auto set_projection_from_world_matrix(Magnum::Matrix4 const& projection_from_world) -> CellShader&;
+
+    auto set_coloring_type(CellColoring const& coloring) -> CellShader&;
+    auto set_uniform_color(Magnum::Color3 const& color) -> CellShader&;
+
+    auto set_shading_type(gvs::Shading const& shading) -> CellShader&;
 
 private:
-    mutable dvh::CellShader  shader_;
-    mutable Magnum::GL::Mesh mesh_;
+    int projection_from_world_uniform_location_ = -1;
 
-    std::unique_ptr<cuda::GLBuffer<Cell>> interop_cells_; ///< GPU buffer shared by OpenGL and the CUDA
+    int coloring_uniform_location_      = -1;
+    int uniform_color_uniform_location_ = -1;
 
-    // TODO: hook this stuff up
-    int       viewport_height_       = 1;
-    float     base_level_resolution_ = 0.1f;
-    glm::vec3 camera_position_       = glm::vec3(0.f);
+    int shading_uniform_location_         = -1;
+    int light_direction_uniform_location_ = -1;
+    int light_color_uniform_location_     = -1;
+    int ambient_scale_uniform_location_   = -1;
 };
 
-} // namespace example
+} // namespace dvh
 } // namespace ltb

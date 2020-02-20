@@ -20,6 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ##########################################################################################
+corrade_add_resource(ltb_dvh_display_RESOURCES ${CMAKE_CURRENT_LIST_DIR}/resources.conf)
+add_library(ltb_dvh_display_resources ${ltb_dvh_display_RESOURCES})
+target_link_libraries(ltb_dvh_display_resources PUBLIC ltb_gvs)
+
+file(GLOB_RECURSE LTB_IGNORE_SOURCES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_LIST_DIR}/dvh_viewer/*
+        )
+
 file(GLOB_RECURSE LTB_SOURCE_FILES
         LIST_DIRECTORIES false
         CONFIGURE_DEPENDS
@@ -28,12 +38,13 @@ file(GLOB_RECURSE LTB_SOURCE_FILES
         ${CMAKE_CURRENT_LIST_DIR}/*.cu
         ${CMAKE_CURRENT_LIST_DIR}/*.cuh
         )
+list(REMOVE_ITEM LTB_SOURCE_FILES ${LTB_IGNORE_SOURCES})
 
 add_executable(ltb_tmp ${LTB_SOURCE_FILES})
 
 target_link_libraries(ltb_tmp
         PUBLIC
-        ltb_gvs
+        ltb_dvh_display_resources
         ltb_dvh
         doctest
         )
