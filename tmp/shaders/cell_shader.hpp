@@ -50,6 +50,9 @@ public:
     explicit CellShader();
 
     auto set_projection_from_world_matrix(Magnum::Matrix4 const& projection_from_world) -> CellShader&;
+    auto set_projection_from_view_matrix(Magnum::Matrix4 const& projection_from_view) -> CellShader&;
+    auto set_viewport_height(int const& viewport_height) -> CellShader&;
+    auto set_base_level_resolution(float const& base_level_resolution) -> CellShader&;
 
     auto set_coloring_type(CellColoring const& coloring) -> CellShader&;
     auto set_uniform_color(Magnum::Color3 const& color) -> CellShader&;
@@ -58,6 +61,9 @@ public:
 
 private:
     int projection_from_world_uniform_location_ = -1;
+    int projection_from_view_uniform_location_  = -1;
+    int viewport_height_uniform_location_       = -1;
+    int base_level_resolution_uniform_location_ = -1;
 
     int coloring_uniform_location_      = -1;
     int uniform_color_uniform_location_ = -1;

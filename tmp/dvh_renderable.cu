@@ -26,6 +26,7 @@
 #include "buffer_map_guard.hpp"
 
 // external
+#include <Magnum/Math/Vector2.h>
 #include <glm/ext/scalar_constants.hpp>
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
@@ -38,6 +39,8 @@ namespace ltb {
 namespace example {
 
 namespace {
+
+using namespace Magnum::Math::Literals;
 
 struct DistanceFromCameraComparator {
     LTB_CUDA_FUNC bool operator()(const Cell& c1, const Cell& c2) {
@@ -87,11 +90,13 @@ LTB_CUDA_FUNC auto Cell::center_point(float level_0_resolution) const -> glm::ve
     return glm::vec3(index) * level_0_resolution * glm::pow(2.f, static_cast<float>(level));
 }
 
-DvhRenderable::DvhRenderable() {
+DvhRenderable::DvhRenderable(glm::ivec2 viewport) {
     {
         auto cells     = create_cells();
         interop_cells_ = std::make_unique<cuda::GLBuffer<Cell>>(cells);
     }
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     mesh_.addVertexBuffer(interop_cells_->gl_buffer(),
                           0,
@@ -100,6 +105,8 @@ DvhRenderable::DvhRenderable() {
                           dvh::CellShader::Level());
     mesh_.setCount(interop_cells_->size());
     mesh_.setPrimitive(Magnum::GL::MeshPrimitive::Points);
+
+    resize(viewport);
 }
 
 void DvhRenderable::update(double /*time_step*/) {
@@ -115,7 +122,7 @@ void DvhRenderable::update(double /*time_step*/) {
                  DistanceFromCameraComparator{camera_position_, base_level_resolution_});
 }
 
-void DvhRenderable::render(const gvs::CameraPackage& /*camera_package*/) const {
+void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
 
     glEnable(GL_BLEND);
     glDepthMask(GL_FALSE);
@@ -123,13 +130,12 @@ void DvhRenderable::render(const gvs::CameraPackage& /*camera_package*/) const {
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
-    //    auto projection_from_world
-    //        = camera_package.camera->projectionMatrix() * camera_package.object.transformationMatrix();
-
-    // TODO: Figure out camera transform
-
     shader_
-        //    shader_.set_projection_from_world_matrix(camera_package.camera->projectionMatrix())
+        .set_projection_from_world_matrix(camera_package.camera->projectionMatrix()
+                                          * camera_package.camera->cameraMatrix())
+        .set_projection_from_view_matrix(camera_package.camera->projectionMatrix())
+        .set_viewport_height(viewport_.y)
+        .set_base_level_resolution(base_level_resolution_)
         .set_coloring_type(dvh::CellColoring::Normals)
         .set_shading_type(gvs::Shading::UniformColor);
 
@@ -140,6 +146,10 @@ void DvhRenderable::render(const gvs::CameraPackage& /*camera_package*/) const {
 }
 
 void DvhRenderable::configure_gui() {}
+
+void DvhRenderable::resize(glm::ivec2 viewport) {
+    viewport_ = viewport;
+}
 
 } // namespace example
 } // namespace ltb

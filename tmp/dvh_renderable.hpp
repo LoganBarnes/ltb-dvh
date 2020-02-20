@@ -51,11 +51,13 @@ struct Cell {
  */
 class DvhRenderable {
 public:
-    DvhRenderable();
+    explicit DvhRenderable(glm::ivec2 viewport);
 
     void update(double time_step);
     void render(const gvs::CameraPackage& camera_package) const;
     void configure_gui();
+
+    void resize(glm::ivec2 viewport);
 
 private:
     mutable dvh::CellShader  shader_;
@@ -64,9 +66,9 @@ private:
     std::unique_ptr<cuda::GLBuffer<Cell>> interop_cells_; ///< GPU buffer shared by OpenGL and the CUDA
 
     // TODO: hook this stuff up
-    int       viewport_height_       = 1;
-    float     base_level_resolution_ = 0.1f;
-    glm::vec3 camera_position_       = glm::vec3(0.f);
+    glm::ivec2 viewport_;
+    float      base_level_resolution_ = 0.1f;
+    glm::vec3  camera_position_       = glm::vec3(0.f);
 };
 
 } // namespace example

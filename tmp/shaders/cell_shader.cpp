@@ -54,6 +54,9 @@ CellShader::CellShader() {
     CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
     projection_from_world_uniform_location_ = uniformLocation("projection_from_world");
+    projection_from_view_uniform_location_  = uniformLocation("projection_from_view");
+    viewport_height_uniform_location_       = uniformLocation("viewport_height");
+    base_level_resolution_uniform_location_ = uniformLocation("base_level_resolution");
 
     coloring_uniform_location_      = uniformLocation("coloring_type");
     uniform_color_uniform_location_ = uniformLocation("uniform_color");
@@ -66,6 +69,21 @@ CellShader::CellShader() {
 
 auto CellShader::set_projection_from_world_matrix(Magnum::Matrix4 const& projection_from_world) -> CellShader& {
     setUniform(projection_from_world_uniform_location_, projection_from_world);
+    return *this;
+}
+
+auto CellShader::set_projection_from_view_matrix(Magnum::Matrix4 const& projection_from_view) -> CellShader& {
+    setUniform(projection_from_view_uniform_location_, projection_from_view);
+    return *this;
+}
+
+auto CellShader::set_viewport_height(int const& viewport_height) -> CellShader& {
+    setUniform(viewport_height_uniform_location_, viewport_height);
+    return *this;
+}
+
+auto CellShader::set_base_level_resolution(float const& base_level_resolution) -> CellShader& {
+    setUniform(base_level_resolution_uniform_location_, base_level_resolution);
     return *this;
 }
 

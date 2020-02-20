@@ -26,6 +26,7 @@
 #include "dvh_renderable.hpp"
 #include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
+#include <ltb/gvs/display/local_scene.hpp>
 
 namespace ltb::example {
 
@@ -55,7 +56,8 @@ private:
     // Errors
     std::shared_ptr<gvs::ErrorAlert> error_alert_;
 
-    DvhRenderable dvh_renderable_;
+    gvs::LocalScene scene_;
+    DvhRenderable   dvh_renderable_;
 };
 
 } // namespace ltb::example

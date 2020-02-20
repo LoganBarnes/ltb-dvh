@@ -25,6 +25,7 @@
 // project
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/error_alert.hpp"
+#include "ltb/gvs/display/gui/scene_gui.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
@@ -35,6 +36,7 @@ static void initialize_dvh_resources() {
 }
 
 using namespace Magnum;
+using namespace Magnum::Math::Literals;
 
 namespace ltb::example {
 
@@ -46,12 +48,21 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
       gl_version_str_(GL::Context::current().versionString()),
       gl_renderer_str_(GL::Context::current().rendererString()),
-      error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")) {
+      error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")),
+      dvh_renderable_({this->windowSize().x(), this->windowSize().y()}) {
 
     initialize_dvh_resources();
 
+    camera_package_.camera->setProjectionMatrix(
+        Magnum::Matrix4::perspectiveProjection(45.0_degf,
+                                               Magnum::Vector2{this->windowSize()}.aspectRatio(),
+                                               0.1f,
+                                               5e4f));
+
     camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
     camera_package_.update_object();
+
+    scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
 }
 
 MainWindow::~MainWindow() = default;
@@ -61,6 +72,7 @@ void MainWindow::update() {
 }
 
 void MainWindow::render(const gvs::CameraPackage& camera_package) const {
+    scene_.render(camera_package);
     dvh_renderable_.render(camera_package);
 }
 
@@ -91,13 +103,17 @@ void MainWindow::configure_gui() {
     add_three_line_separator();
 
     dvh_renderable_.configure_gui();
+    gvs::configure_gui(&scene_);
 
     ImGui::End();
 
     error_alert_->display_next_error();
 }
 
-void MainWindow::resize(const Vector2i& /*viewport*/) {}
+void MainWindow::resize(const Vector2i& viewport) {
+    scene_.resize(viewport);
+    dvh_renderable_.resize({viewport.x(), viewport.y()});
+}
 
 void MainWindow::handleKeyPressEvent(KeyEvent& /*event*/) {}
 
