@@ -20,16 +20,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "camera_package.hpp"
+#pragma once
+
+// project
+#include "ltb/gvs/core/types.hpp"
 
 // external
-#include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/Math/Functions.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+#include <Magnum/GL/AbstractShaderProgram.h>
+#include <Magnum/Math/Color.h>
 
-namespace ltb::gvs {
+namespace ltb {
+namespace gvs {
 
-using namespace Magnum;
-using namespace Math::Literals;
+class BoxShader : public Magnum::GL::AbstractShaderProgram {
+public:
+    typedef Magnum::GL::Attribute<0, Magnum::Vector4> CenterAndRadius;
 
-} // namespace ltb::gvs
+    explicit BoxShader();
+
+    auto set_projection_from_world_matrix(Magnum::Matrix4 const& projection_from_world) -> BoxShader&;
+
+    auto set_coloring(Coloring const& coloring) -> BoxShader&;
+    auto set_uniform_color(Magnum::Color3 const& color) -> BoxShader&;
+
+    auto set_shading(Shading const& shading) -> BoxShader&;
+
+private:
+    int projection_from_world_uniform_location_ = -1;
+
+    int coloring_uniform_location_      = -1;
+    int uniform_color_uniform_location_ = -1;
+
+    int shading_uniform_location_         = -1;
+    int light_direction_uniform_location_ = -1;
+    int light_color_uniform_location_     = -1;
+    int ambient_scale_uniform_location_   = -1;
+};
+
+} // namespace gvs
+} // namespace ltb

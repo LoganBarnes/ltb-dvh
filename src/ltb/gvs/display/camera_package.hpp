@@ -27,34 +27,12 @@
 #include <Magnum/SceneGraph/MatrixTransformation3D.h>
 #include <Magnum/SceneGraph/Object.h>
 
-namespace ltb::gvs {
-
-struct Ray {
-    Magnum::Vector3 origin;
-    Magnum::Vector3 direction;
-};
+namespace ltb {
+namespace gvs {
 
 struct CameraPackage {
-    virtual ~CameraPackage() = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> object;
-    Magnum::SceneGraph::Camera3D*                                          camera = nullptr;
-
-    void set_camera(Magnum::SceneGraph::Camera3D* cam, const Magnum::Vector2i& viewport);
-
-    void update_viewport(const Magnum::Vector2i& viewport);
-
-    Ray get_camera_ray_from_window_pos(const Magnum::Vector2& mouse_position);
+    Magnum::SceneGraph::Camera3D* camera = nullptr;
 };
 
-struct OrbitCameraPackage : CameraPackage {
-    ~OrbitCameraPackage() override = default;
-
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> zoom_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> rotation_object;
-    Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D> translation_object;
-
-    void update_object();
-};
-
-} // namespace ltb::gvs
+} // namespace gvs
+} // namespace ltb

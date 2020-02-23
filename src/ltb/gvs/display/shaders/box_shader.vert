@@ -20,16 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "camera_package.hpp"
 
-// external
-#include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/Math/Functions.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+// version will be inserted automagically
 
-namespace ltb::gvs {
+layout(location = 0) in vec4 center_and_radius;
 
-using namespace Magnum;
-using namespace Math::Literals;
+layout(location = 0) out vec4 world_position_and_radius_out;
 
-} // namespace ltb::gvs
+void main()
+{
+    world_position_and_radius_out = center_and_radius;
+}

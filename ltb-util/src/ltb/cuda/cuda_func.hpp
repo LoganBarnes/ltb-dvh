@@ -1,5 +1,5 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
-// LTB Geometry Visualization Server
+// LTB Utilities
 // Copyright (c) 2020 Logan Barnes - All Rights Reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,16 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "camera_package.hpp"
+#pragma once
 
-// external
-#include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/Math/Functions.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-
-namespace ltb::gvs {
-
-using namespace Magnum;
-using namespace Math::Literals;
-
-} // namespace ltb::gvs
+#ifdef __CUDACC__
+#define LTB_CUDA_FUNC __device__ __host__
+#else
+#define LTB_CUDA_FUNC
+#endif

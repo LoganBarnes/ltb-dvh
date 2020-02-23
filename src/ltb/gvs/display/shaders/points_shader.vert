@@ -20,16 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#include "camera_package.hpp"
 
-// external
-#include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/Math/Functions.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+// version will be inserted automagically
 
-namespace ltb::gvs {
+layout(location = 0) in vec4 local_position;
+layout(location = 1) in vec3 local_normal;
+layout(location = 2) in vec2 texture_coordinates;
+layout(location = 3) in vec3 vertex_color;
 
-using namespace Magnum;
-using namespace Math::Literals;
+uniform mat4 world_from_local = mat4(1.f);
+uniform mat3 world_from_local_normals = mat3(1.f);
+uniform mat4 projection_from_local = mat4(1.f);
 
-} // namespace ltb::gvs
+layout(location = 0) out vec3 world_position_out;
+layout(location = 1) out vec3 world_normal_out;
+layout(location = 2) out vec2 texture_coordinates_out;
+layout(location = 3) out vec3 vertex_color_out;
+
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
+
+void main()
+{
+    world_position_out      = vec3(world_from_local * local_position);
+    world_normal_out        = world_from_local_normals * local_normal;
+    texture_coordinates_out = texture_coordinates;
+    vertex_color_out        = vertex_color;
+
+    gl_Position = projection_from_local * local_position;
+}
