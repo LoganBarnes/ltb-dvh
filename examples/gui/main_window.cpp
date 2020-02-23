@@ -44,16 +44,9 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setTitle("Distance Volume Hierarchy")
                                       .setSize({1600, 900})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
-      gl_version_str_(GL::Context::current().versionString()),
-      gl_renderer_str_(GL::Context::current().rendererString()),
-      error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")),
       sdf_view_(camera_package_, error_alert_),
       dvh_view_3d_(error_alert_),
-      dvh_view_2d_(error_alert_) {
-
-    camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
-    camera_package_.update_object();
-}
+      dvh_view_2d_(error_alert_) {}
 
 MainWindow::~MainWindow() = default;
 
@@ -66,30 +59,15 @@ void MainWindow::render(const gvs::CameraPackage& camera_package) const {
 }
 
 void MainWindow::configure_gui() {
-
-    auto add_three_line_separator = [] {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Spacing();
-    };
-
     auto height = static_cast<float>(this->windowSize().y());
 
     ImGui::SetNextWindowPos({0.f, 0.f});
     ImGui::SetNextWindowSizeConstraints(ImVec2(0.f, height), ImVec2(std::numeric_limits<float>::infinity(), height));
     ImGui::Begin("Settings", nullptr, ImVec2(350.f, height));
 
-    ImGui::Text("GL Version:   ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_version_str_.c_str());
+    display_device_info();
 
-    ImGui::Text("GL Renderer:  ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_renderer_str_.c_str());
-
-    add_three_line_separator();
+    gvs::add_three_line_separator();
 
     current_view_->configure_gui();
 

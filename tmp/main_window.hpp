@@ -49,15 +49,10 @@ private:
     void handleMouseReleaseEvent(MouseEvent& event) override;
     void handleMouseMoveEvent(MouseMoveEvent& event) override;
 
-    // General Info
-    std::string gl_version_str_;
-    std::string gl_renderer_str_;
-
-    // Errors
-    std::shared_ptr<gvs::ErrorAlert> error_alert_;
-
     gvs::LocalScene scene_;
     DvhRenderable   dvh_renderable_;
+
+    bool paused = true;
 };
 
 } // namespace ltb::example

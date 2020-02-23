@@ -45,19 +45,20 @@ namespace ltb::example {
 
 namespace {
 
-// 'p' is a point on a plane
-float intersect_plane(gvs::Ray const& ray, Vector3 p, const Vector3& plane_normal) {
-    // plane ray intersection
-    float const denom = Math::dot(ray.direction, plane_normal);
-
-    p -= ray.origin;
-    float const t = Math::dot(p, plane_normal) / denom;
-
-    if (t >= 0.f && t != std::numeric_limits<float>::infinity()) {
-        return t;
-    }
-    return std::numeric_limits<float>::infinity();
-}
+//// 'p' is a point on a plane
+//float intersect_plane(gvs::Ray const& ray, Vector3 p, const Vector3& plane_normal)
+//{
+//    // plane ray intersection
+//    float const denom = Math::dot(ray.direction, plane_normal);
+//
+//    p -= ray.origin;
+//    float const t = Math::dot(p, plane_normal) / denom;
+//
+//    if (t >= 0.f && t != std::numeric_limits<float>::infinity()) {
+//        return t;
+//    }
+//    return std::numeric_limits<float>::infinity();
+//}
 
 template <int L, typename G>
 auto find_closest(float* closest_distance, glm::vec<L, float> const& point, std::vector<G> const& geometries) {
@@ -103,8 +104,8 @@ auto find_closest(glm::vec<3, float>* closest_vec, glm::vec<L, float> const& poi
 
 } // namespace
 
-SdfView::SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder)
-    : camera_package_(camera_package), error_recorder_(std::move(error_recorder)) {
+SdfView::SdfView(gvs::CameraPackage& /*camera_package*/, gvs::ErrorAlertRecorder error_recorder)
+    : /*camera_package_(camera_package),*/ error_recorder_(std::move(error_recorder)) {
 
     oriented_lines_ = {
 #ifndef THREE_DEE
@@ -243,16 +244,16 @@ auto SdfView::handleMouseMoveEvent(Application::MouseMoveEvent& event) -> void {
         event.setAccepted(true);
 
         if (ctrl_down_ || shift_down_) {
-            auto const orbit_point
-                = camera_package_.translation_object.transformation().transformPoint(Magnum::Vector3{0.f});
-
-            auto ray          = camera_package_.get_camera_ray_from_window_pos(Vector2(event.position()));
-            auto plane_normal = (ray.origin - orbit_point).normalized();
-
-            auto dist_to_plane = intersect_plane(ray, orbit_point, plane_normal);
-            auto world_pos     = ray.origin + ray.direction * dist_to_plane;
-
-            tangent_sphere_center_ = {world_pos.x(), world_pos.y(), world_pos.z()};
+            //            auto const orbit_point
+            //                = camera_package_.translation_object.transformation().transformPoint(Magnum::Vector3{0.f});
+            //
+            //            auto ray          = camera_package_.get_camera_ray_from_window_pos(Vector2(event.position()));
+            //            auto plane_normal = (ray.origin - orbit_point).normalized();
+            //
+            //            auto dist_to_plane = intersect_plane(ray, orbit_point, plane_normal);
+            //            auto world_pos     = ray.origin + ray.direction * dist_to_plane;
+            //
+            //            tangent_sphere_center_ = {world_pos.x(), world_pos.y(), world_pos.z()};
 
             distance_to_closest_geometry_ = std::numeric_limits<float>::infinity();
         }

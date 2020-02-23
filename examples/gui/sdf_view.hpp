@@ -32,7 +32,7 @@ namespace ltb::example {
 
 class SdfView : public View {
 public:
-    explicit SdfView(gvs::OrbitCameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
+    explicit SdfView(gvs::CameraPackage& camera_package, gvs::ErrorAlertRecorder error_recorder);
     ~SdfView() override;
 
     void render(const gvs::CameraPackage& camera_package) const override;
@@ -49,7 +49,7 @@ public:
 
 private:
     // Camera
-    gvs::OrbitCameraPackage& camera_package_;
+    //    gvs::CameraPackage& camera_package_;
 
     // Errors
     gvs::ErrorAlertRecorder error_recorder_;

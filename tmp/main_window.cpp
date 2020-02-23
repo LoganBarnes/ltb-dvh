@@ -25,6 +25,7 @@
 // project
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/error_alert.hpp"
+#include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
 
 // external
@@ -46,12 +47,17 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setTitle("Tmp Particle Test")
                                       .setSize({1600, 900})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
-      gl_version_str_(GL::Context::current().versionString()),
-      gl_renderer_str_(GL::Context::current().rendererString()),
-      error_alert_(std::make_shared<gvs::ErrorAlert>("DVH Errors")),
       dvh_renderable_({this->windowSize().x(), this->windowSize().y()}) {
 
     initialize_dvh_resources();
+
+    auto rotation = Matrix4::rotationY(30.0_degf) * Matrix4::rotationX(-15.0_degf);
+    auto eye      = rotation.transformPoint({0.f, 0.f, 100.f});
+    auto center   = Vector3{};
+    auto up       = Vector3{0.f, 1.f, 0.f};
+
+    arcball_camera_->setViewParameters(eye, center, up);
+    arcball_camera_->update(true);
 
     camera_package_.camera->setProjectionMatrix(
         Magnum::Matrix4::perspectiveProjection(45.0_degf,
@@ -59,18 +65,19 @@ MainWindow::MainWindow(const Arguments& arguments)
                                                0.1f,
                                                5e4f));
 
-    camera_package_.zoom_object.translate({0.f, 0.f, 10.f});
-    camera_package_.update_object();
-
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
 }
 
 MainWindow::~MainWindow() = default;
 
 void MainWindow::update() {
-    auto camera_pos = camera_package_.object.transformationMatrix() * Magnum::Vector4(0.f, 0.f, 0.f, 1.f);
+    auto camera_pos = camera_package_.camera->cameraMatrix().inverted().transformPoint({0.f, 0.f, 0.f});
     dvh_renderable_.set_camera_position({camera_pos.x(), camera_pos.y(), camera_pos.z()});
     dvh_renderable_.update(0.01);
+
+    if (!paused) {
+        reset_draw_counter();
+    }
 }
 
 void MainWindow::render(const gvs::CameraPackage& camera_package) const {
@@ -79,30 +86,24 @@ void MainWindow::render(const gvs::CameraPackage& camera_package) const {
 }
 
 void MainWindow::configure_gui() {
-
-    auto add_three_line_separator = [] {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Spacing();
-    };
-
     auto height = static_cast<float>(this->windowSize().y());
 
     ImGui::SetNextWindowPos({0.f, 0.f});
     ImGui::SetNextWindowSizeConstraints(ImVec2(0.f, height), ImVec2(std::numeric_limits<float>::infinity(), height));
     ImGui::Begin("Settings", nullptr, ImVec2(350.f, height));
 
-    ImGui::Text("GL Version:   ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_version_str_.c_str());
+    if (!paused) {
+        ImGui::TextUnformatted("Framerate:    ");
+        ImGui::SameLine();
+        ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f},
+                           "%.3f ms/frame (%.1f FPS) \t",
+                           1000.0f / ImGui::GetIO().Framerate,
+                           ImGui::GetIO().Framerate);
+    }
 
-    ImGui::Text("GL Renderer:  ");
-    ImGui::SameLine();
-    ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f}, "%s\t", gl_renderer_str_.c_str());
+    display_device_info();
 
-    add_three_line_separator();
+    gvs::add_three_line_separator();
 
     dvh_renderable_.configure_gui();
     gvs::configure_gui(&scene_);
@@ -119,7 +120,23 @@ void MainWindow::resize(const Vector2i& viewport) {
 
 void MainWindow::handleKeyPressEvent(KeyEvent& /*event*/) {}
 
-void MainWindow::handleKeyReleaseEvent(KeyEvent& /*event*/) {}
+void MainWindow::handleKeyReleaseEvent(KeyEvent& event) {
+    event.setAccepted(true);
+
+    switch (event.key()) {
+
+    case KeyEvent::Key::P:
+        paused = !paused;
+        if (!paused) {
+            reset_draw_counter();
+        }
+        break;
+
+    default:
+        event.setAccepted(false);
+        break;
+    }
+}
 
 auto MainWindow::handleMousePressEvent(MouseEvent & /*event*/) -> void {}
 
