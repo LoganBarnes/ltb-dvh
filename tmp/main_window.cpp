@@ -93,12 +93,7 @@ void MainWindow::configure_gui() {
     ImGui::Begin("Settings", nullptr, ImVec2(350.f, height));
 
     if (!paused) {
-        ImGui::TextUnformatted("Framerate:    ");
-        ImGui::SameLine();
-        ImGui::TextColored({0.5f, 0.5f, 0.5f, 1.f},
-                           "%.3f ms/frame (%.1f FPS) \t",
-                           1000.0f / ImGui::GetIO().Framerate,
-                           ImGui::GetIO().Framerate);
+        display_fps_info();
     }
 
     display_device_info();
