@@ -26,6 +26,7 @@
 #include "buffer_map_guard.hpp"
 
 // external
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Vector2.h>
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/hash.hpp>
@@ -39,12 +40,13 @@
 
 //#define NOT_UNIQUE
 
+using namespace Magnum;
+using namespace Math::Literals;
+
 namespace ltb {
 namespace example {
 
 namespace {
-
-using namespace Magnum::Math::Literals;
 
 struct DistanceFromCameraComparator {
     LTB_CUDA_FUNC bool operator()(const Cell& c1, const Cell& c2) {
@@ -125,7 +127,7 @@ DvhRenderable::DvhRenderable(glm::ivec2 viewport) {
                           dvh::CellShader::VectorToClosestPoint(),
                           dvh::CellShader::Level());
     mesh_.setCount(interop_cells_->size());
-    mesh_.setPrimitive(Magnum::GL::MeshPrimitive::Points);
+    mesh_.setPrimitive(GL::MeshPrimitive::Points);
 
     resize(viewport);
 }
@@ -144,12 +146,14 @@ void DvhRenderable::update(double /*time_step*/) {
 }
 
 void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
+    GL::Renderer::enable(GL::Renderer::Feature::Blending);
+    GL::Renderer::setDepthMask(false);
 
-    glEnable(GL_BLEND);
-    glDepthMask(GL_FALSE);
-
-    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+    GL::Renderer::setBlendEquation(GL::Renderer::BlendEquation::Add, GL::Renderer::BlendEquation::Add);
+    GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
+                                   GL::Renderer::BlendFunction::OneMinusSourceAlpha,
+                                   GL::Renderer::BlendFunction::One,
+                                   GL::Renderer::BlendFunction::Zero);
 
     shader_
         .set_projection_from_world_matrix(camera_package.camera->projectionMatrix()
@@ -162,8 +166,8 @@ void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
 
     mesh_.draw(shader_);
 
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+    GL::Renderer::setDepthMask(true);
+    GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
 void DvhRenderable::configure_gui() {}
