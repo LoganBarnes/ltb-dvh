@@ -103,6 +103,8 @@ void MainWindow::configure_gui() {
 
     display_device_info();
 
+    settings_.configure_gui();
+
     gvs::add_three_line_separator();
 
     dvh_renderable_.configure_gui();

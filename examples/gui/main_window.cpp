@@ -67,6 +67,8 @@ void MainWindow::configure_gui() {
 
     display_device_info();
 
+    settings_.configure_gui();
+
     gvs::add_three_line_separator();
 
     current_view_->configure_gui();
