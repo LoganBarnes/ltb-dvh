@@ -70,9 +70,15 @@ MainWindow::MainWindow(const Arguments& arguments)
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
 
+    auto obj_file = std::string{"/home/logan/Documents/projects/engine/cache/dvh/hard-part-low-res.obj"};
+
+    if (arguments.argc > 1) {
+        obj_file = arguments.argv[1];
+    }
+
     {
         ltb::util::ScopedTimer timer("Obj Loading", std::cout);
-        mesh_ = io::load_obj("~/Documents/projects/engine/cache/dvh/hard-part-low-res.obj");
+        mesh_ = io::load_obj(obj_file);
 
         scene_.add_item(gvs::SetReadableId("Mesh"),
                         gvs::SetPositions3d(mesh_.vertices),
