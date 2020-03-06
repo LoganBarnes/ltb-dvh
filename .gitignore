@@ -53,5 +53,8 @@ _deps
 *.cubin
 *.fatbin
 
-### GUI ###
+### Local ###
+# GUI
 imgui.ini
+# General
+/cache/

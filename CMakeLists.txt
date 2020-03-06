@@ -97,3 +97,5 @@ else ()
     ### Util ###
     add_subdirectory(ltb-gvs/ltb-util)
 endif ()
+
+ltb_symlink(cache)

@@ -81,6 +81,7 @@ if (NOT LTB_CONFIGURED)
     include(${CMAKE_CURRENT_LIST_DIR}/LtbSetProperties.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/LtbAddLibrary.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/LtbAddExecutable.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/LtbSymlink.cmake)
 
     if (LTB_BUILD_TESTS)
         enable_testing()

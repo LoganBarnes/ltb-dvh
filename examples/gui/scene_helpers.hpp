@@ -36,9 +36,9 @@ auto add_boxes_to_scene(gvs::Scene*                                             
                         std::vector<sdf::TransformedGeometry<sdf::Box, 3>> const& boxes,
                         gvs::SceneId const& parent = gvs::nil_id()) -> gvs::SceneId;
 
-auto add_triangles_to_scene(gvs::Scene*                                  scene,
+auto add_triangles_to_scene(gvs::Scene*                                 scene,
                             std::vector<sdf::OrientedTriangle<>> const& triangles,
-                            gvs::SceneId const&                          parent = gvs::nil_id()) -> gvs::SceneId;
+                            gvs::SceneId const&                         parent = gvs::nil_id()) -> gvs::SceneId;
 
 auto add_lines_to_scene(gvs::Scene*                             scene,
                         std::vector<sdf::OrientedLine<>> const& oriented_lines,

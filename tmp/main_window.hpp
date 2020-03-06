@@ -55,11 +55,11 @@ private:
     Mesh3 mesh_;
 
     // DVH
-    float                           base_resolution_ = 0.1f;
+    float                           base_resolution_ = 1.0f;
     dvh::DistanceVolumeHierarchy<3> dvh_;
 
     // Additive Volumes
-    std::vector<sdf::TransformedGeometry<sdf::Triangle, 3>> additive_mesh_;
+    std::vector<sdf::OrientedTriangle<>> additive_mesh_;
 
     // Visuals
     DvhRenderable   dvh_renderable_;

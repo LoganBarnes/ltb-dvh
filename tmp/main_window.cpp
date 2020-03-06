@@ -27,12 +27,13 @@
 #include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "ltb/paths.hpp"
+#include "ltb/util/timer.hpp"
 #include "obj_io.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
 #include <imgui.h>
-#include <ltb/util/timer.hpp>
 
 static void initialize_dvh_resources() {
     CORRADE_RESOURCE_INITIALIZE(ltb_dvh_display_RESOURCES)
@@ -70,7 +71,8 @@ MainWindow::MainWindow(const Arguments& arguments)
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
 
-    auto obj_file = std::string{"/home/logan/Documents/projects/engine/cache/dvh/hard-part-low-res.obj"};
+    auto obj_file = ltb::paths::project_root() + "cache" + ltb::paths::slash() + "dvh" + ltb::paths::slash()
+        + "freeform-lofted-low-res.obj";
 
     if (arguments.argc > 1) {
         obj_file = arguments.argv[1];
@@ -83,9 +85,9 @@ MainWindow::MainWindow(const Arguments& arguments)
     {
         ltb::util::ScopedTimer timer("Creating triangles", timing_stream_);
         for (auto i = 0ul; i < mesh_.indices.size(); i += 3) {
-            additive_mesh_.emplace_back(sdf::make_triangle(mesh_.vertices.at(mesh_.indices.at(i + 0)),
-                                                           mesh_.vertices.at(mesh_.indices.at(i + 1)),
-                                                           mesh_.vertices.at(mesh_.indices.at(i + 2))));
+            additive_mesh_.emplace_back(sdf::make_oriented_triangle(mesh_.vertices.at(mesh_.indices.at(i + 0)),
+                                                                    mesh_.vertices.at(mesh_.indices.at(i + 1)),
+                                                                    mesh_.vertices.at(mesh_.indices.at(i + 2))));
         }
     }
 

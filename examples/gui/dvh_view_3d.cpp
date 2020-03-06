@@ -26,6 +26,7 @@
 #include "ltb/dvh/distance_volume_hierarchy_util.hpp"
 #include "ltb/gvs/core/log_params.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "ltb/paths.hpp"
 #include "ltb/sdf/sdf.hpp"
 #include "ltb/util/container_utils.hpp"
 #include "ltb/util/result.hpp"
@@ -244,9 +245,10 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
 
     scene_ = std::make_unique<gvs::LocalScene>();
 
-    auto obj_file = std::string{"/home/logan/Documents/projects/engine/cache/dvh/hard-part-low-res.obj"};
+    auto obj_file = ltb::paths::project_root() + "cache" + ltb::paths::slash() + "dvh" + ltb::paths::slash()
+        + "freeform-lofted-low-res.obj";
 
-    Mesh3 mesh = {};
+    Mesh3 mesh;
     {
         ltb::util::ScopedTimer timer("Obj Loading", std::cout);
         mesh = io::load_obj(obj_file);
