@@ -30,6 +30,7 @@
 #include "ltb/util/container_utils.hpp"
 #include "ltb/util/result.hpp"
 #include "ltb/util/timer.hpp"
+#include "obj_io.hpp"
 #include "scene_helpers.hpp"
 
 // external
@@ -243,6 +244,26 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
 
     scene_ = std::make_unique<gvs::LocalScene>();
 
+    auto obj_file = std::string{"/home/logan/Documents/projects/engine/cache/dvh/hard-part-low-res.obj"};
+
+    Mesh3 mesh = {};
+    {
+        ltb::util::ScopedTimer timer("Obj Loading", std::cout);
+        mesh = io::load_obj(obj_file);
+    }
+    {
+        ltb::util::ScopedTimer timer("Creating triangles", std::cout);
+        for (auto i = 0ul; i < mesh.indices.size(); i += 3) {
+            additive_mesh_.emplace_back(sdf::make_oriented_triangle(mesh.vertices.at(mesh.indices.at(i + 0)),
+                                                                    mesh.vertices.at(mesh.indices.at(i + 1)),
+                                                                    mesh.vertices.at(mesh.indices.at(i + 2))));
+        }
+    }
+
+    additive_mesh_ = {
+        sdf::make_oriented_triangle<float>({0, 1, 0}, {0, 0, 1}, {1, 0, 0}),
+    };
+
     reset_volumes();
     reset_scene();
 }
@@ -296,18 +317,23 @@ void DvhView3d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<3>{base_resolution_};
 
     std::stringstream ss;
-    {
-        util::ScopedTimer timer("Additive computation time", ss);
+    //    {
+    //        util::ScopedTimer timer("Additive box time", ss);
+    //
+    //        for (auto const& box : additive_boxes_) {
+    //            dvh_.add_volume(decltype(additive_boxes_){box});
+    //        }
+    //    }
 
-        for (auto const& box : additive_boxes_) {
-            dvh_.add_volume(decltype(additive_boxes_){box});
-        }
+    {
+        util::ScopedTimer timer("Additive mesh time", ss);
+        dvh_.add_volume(additive_mesh_);
     }
 
-    {
-        util::ScopedTimer timer("Subtractive computation time", ss);
-        dvh_.subtract_volumes(subtractive_lines_);
-    }
+    //    {
+    //        util::ScopedTimer timer("Subtractive computation time", ss);
+    //        dvh_.subtract_volumes(subtractive_lines_);
+    //    }
     computation_time_message_ = ss.str();
 }
 
@@ -318,19 +344,22 @@ void DvhView3d::reset_scene() {
     scene_->add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     dvh_root_scene_id_ = scene_->add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
 
-    auto squares_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
-    scene_->update_item(squares_scene_id,
-                        gvs::SetReadableId("Additive Boxes"),
-                        gvs::SetColoring(gvs::Coloring::UniformColor),
-                        gvs::SetShading(gvs::Shading::UniformColor),
-                        gvs::SetUniformColor({1.f, 1.f, 1.f}));
+    //    auto boxes_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
+    //    scene_->update_item(boxes_scene_id, gvs::SetReadableId("Additive Boxes"));
 
-    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
-    scene_->update_item(offset_lines_scene_id,
-                        gvs::SetReadableId("Subtractive Lines"),
-                        gvs::SetColoring(gvs::Coloring::UniformColor),
+    //    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
+    //    scene_->update_item(offset_lines_scene_id,
+    //                        gvs::SetReadableId("Subtractive Lines"),
+    //                        gvs::SetColoring(gvs::Coloring::UniformColor),
+    //                        gvs::SetShading(gvs::Shading::UniformColor),
+    //                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
+
+    auto mesh_scene_id = add_triangles_to_scene(scene_.get(), additive_mesh_);
+    scene_->update_item(mesh_scene_id,
+                        gvs::SetReadableId("Additive Mesh"),
                         gvs::SetShading(gvs::Shading::UniformColor),
-                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
+                        gvs::SetColoring(gvs::Coloring::UniformColor),
+                        gvs::SetWireframeOnly(true));
 
     for (auto const& [level_index, sparse_distance_field] : dvh_.levels()) {
 

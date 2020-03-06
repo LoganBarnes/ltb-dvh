@@ -28,6 +28,7 @@
 #include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
+#include "ltb/sdf/sdf.hpp"
 #include "mesh.hpp"
 
 namespace ltb::example {
@@ -53,12 +54,18 @@ private:
 
     Mesh3 mesh_;
 
-    // Dvh
-    dvh::DistanceVolumeHierarchyGpu<3, float> dvh_;
+    // DVH
+    float                           base_resolution_ = 0.1f;
+    dvh::DistanceVolumeHierarchy<3> dvh_;
+
+    // Additive Volumes
+    std::vector<sdf::TransformedGeometry<sdf::Triangle, 3>> additive_mesh_;
 
     // Visuals
     DvhRenderable   dvh_renderable_;
     gvs::LocalScene scene_;
+
+    std::stringstream timing_stream_;
 
     bool paused = true;
 };

@@ -20,7 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-// project
-#include "register_geometry_type.hpp"
+#pragma once
 
-LTB_DVH_REGISTER_GEOMETRY_TYPE_3D(sdf::Triangle)
+// project
+#include "mesh.hpp"
+
+// standard
+#include <string>
+
+namespace ltb {
+namespace io {
+
+auto load_obj(std::string const& path) -> Mesh3;
+
+} // namespace io
+} // namespace ltb

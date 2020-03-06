@@ -23,4 +23,4 @@
 // project
 #include "register_geometry_type.cuh"
 
-LTB_DVH_REGISTER_GEOMETRY_TYPE(sdf::Triangle)
+LTB_DVH_REGISTER_GEOMETRY_TYPE_3D(sdf::Triangle)

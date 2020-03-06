@@ -23,46 +23,57 @@
 #pragma once
 
 // project
-#include "triangle.hpp"
+#include "ltb/gvs/core/types.hpp"
+#include "ltb/sdf/aabb.hpp"
+
+// external
+#include <glm/geometric.hpp>
+#include <glm/glm.hpp>
+
+// standard
+#include <vector>
 
 namespace ltb {
-namespace sdf {
 
-template <typename T = float>
-struct OrientedTriangle {
-    glm::vec<3, T> p0;
-    glm::vec<3, T> p1;
-    glm::vec<3, T> p2;
+bool is_triangle_format(const gvs::GeometryFormat& format);
 
-    LTB_CUDA_FUNC OrientedTriangle() = default;
-    LTB_CUDA_FUNC OrientedTriangle(glm::vec<3, T> point0, glm::vec<3, T> point1, glm::vec<3, T> point2)
-        : p0(point0), p1(point1), p2(point2) {}
+template <int L, typename T>
+struct Mesh {
+    gvs::GeometryFormat geometry_format = gvs::GeometryFormat::Points;
 
-    LTB_CUDA_FUNC auto vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T>;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<3, T> const& point) const -> T;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<3, T>;
+    std::vector<glm::vec<L, T>>     vertices;
+    std::vector<glm::vec<L, T>>     normals;
+    std::vector<glm::vec<L - 1, T>> tex_coords;
+    std::vector<glm::vec3>          colors;
+
+    std::vector<std::uint32_t> indices;
+
+    auto append(const Mesh<L, T>& other) -> void;
 };
 
-template <typename T = float>
-LTB_CUDA_FUNC auto make_oriented_triangle(glm::vec<3, T> p0, glm::vec<3, T> p1, glm::vec<3, T> p2)
-    -> OrientedTriangle<T> {
-    return {p0, p1, p2};
+template <int L, typename T>
+auto compute_bounding_box(const Mesh<L, T>& mesh) -> sdf::AABB<L, T> {
+    sdf::AABB<L, T> bbox = {};
+    for (const glm::vec<L, T>& vertex : mesh.vertices) {
+        bbox = sdf::expand(bbox, vertex);
+    }
+    return bbox;
 }
 
-template <typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<T>::vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T> {
-    return make_triangle(p0, p1, p2).vector_from(point);
+template <int L, typename T>
+auto transform(Mesh<L, T> mesh, const glm::mat<L + 1, L + 1, T>& transformation) -> Mesh<L, T> {
+    for (auto& vertex : mesh.vertices) {
+        vertex = glm::vec<L, T>(transformation * glm::vec<L + 1, T>(vertex, T(1)));
+    }
+    for (auto& normal : mesh.normals) {
+        normal = glm::vec<L, T>(transformation * glm::vec<L + 1, T>(normal, T(0)));
+    }
+    return mesh;
 }
 
-template <typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<T>::distance_from(glm::vec<3, T> const& point) const -> T {
-    return make_triangle(p0, p1, p2).distance_from(point);
-}
+using Mesh2  = Mesh<2, float>;
+using Mesh3  = Mesh<3, float>;
+using DMesh2 = Mesh<2, double>;
+using DMesh3 = Mesh<3, double>;
 
-template <typename T>
-LTB_CUDA_FUNC auto OrientedTriangle<T>::bounding_box() const -> AABB<3, T> {
-    return make_triangle(p0, p1, p2).bounding_box();
-}
-
-} // namespace sdf
 } // namespace ltb

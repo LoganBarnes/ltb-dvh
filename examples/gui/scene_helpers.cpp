@@ -24,7 +24,7 @@
 
 // project
 #include "ltb/gvs/core/log_params.hpp"
-#include "ltb/sdf/sdf.hpp"
+#include "mesh.hpp"
 
 // external
 #include <glm/gtc/matrix_transform.hpp>
@@ -85,6 +85,29 @@ auto add_boxes_to_scene(gvs::Scene*                                             
     }
 
     return root;
+}
+
+auto add_triangles_to_scene(gvs::Scene*                                 scene,
+                            std::vector<sdf::OrientedTriangle<>> const& triangles,
+                            gvs::SceneId const&                         parent) -> gvs::SceneId {
+    Mesh3 mesh = {};
+
+    for (auto const& triangle : triangles) {
+        mesh.vertices.emplace_back(triangle.p0);
+        mesh.vertices.emplace_back(triangle.p1);
+        mesh.vertices.emplace_back(triangle.p2);
+
+        auto normal = glm::normalize(glm::cross(triangle.p1 - triangle.p0, triangle.p2 - triangle.p0));
+
+        mesh.normals.emplace_back(normal);
+        mesh.normals.emplace_back(normal);
+        mesh.normals.emplace_back(normal);
+    }
+
+    return scene->add_item(gvs::SetPositions3d(mesh.vertices),
+                           gvs::SetNormals3d(mesh.normals),
+                           gvs::SetTriangles(),
+                           gvs::SetParent(parent));
 }
 
 auto add_lines_to_scene(gvs::Scene*                             scene,

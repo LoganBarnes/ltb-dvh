@@ -49,7 +49,7 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setTitle("Tmp Particle Test")
                                       .setSize({1600, 900})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
-      dvh_(0.1f),
+      dvh_(base_resolution_),
       dvh_renderable_({this->windowSize().x(), this->windowSize().y()}) {
 
     initialize_dvh_resources();
@@ -77,16 +77,25 @@ MainWindow::MainWindow(const Arguments& arguments)
     }
 
     {
-        ltb::util::ScopedTimer timer("Obj Loading", std::cout);
+        ltb::util::ScopedTimer timer("Obj Loading", timing_stream_);
         mesh_ = io::load_obj(obj_file);
-
-        scene_.add_item(gvs::SetReadableId("Mesh"),
-                        gvs::SetPositions3d(mesh_.vertices),
-                        gvs::SetIndices(mesh_.indices),
-                        gvs::SetGeometryFormat(mesh_.geometry_format),
-                        gvs::SetShading(gvs::Shading::Lambertian),
-                        gvs::SetColoring(gvs::Coloring::UniformColor));
     }
+    {
+        ltb::util::ScopedTimer timer("Creating triangles", timing_stream_);
+        for (auto i = 0ul; i < mesh_.indices.size(); i += 3) {
+            additive_mesh_.emplace_back(sdf::make_triangle(mesh_.vertices.at(mesh_.indices.at(i + 0)),
+                                                           mesh_.vertices.at(mesh_.indices.at(i + 1)),
+                                                           mesh_.vertices.at(mesh_.indices.at(i + 2))));
+        }
+    }
+
+    scene_.add_item(gvs::SetReadableId("Mesh"),
+                    gvs::SetPositions3d(mesh_.vertices),
+                    gvs::SetIndices(mesh_.indices),
+                    gvs::SetGeometryFormat(mesh_.geometry_format),
+                    gvs::SetShading(gvs::Shading::UniformColor),
+                    gvs::SetColoring(gvs::Coloring::UniformColor),
+                    gvs::SetWireframeOnly(true));
 }
 
 MainWindow::~MainWindow() = default;
@@ -114,7 +123,7 @@ void MainWindow::configure_gui() {
     ImGui::Begin("Settings", nullptr, ImVec2(350.f, height));
 
     if (!paused) {
-        display_fps_info();
+        gvs::display_fps_info();
     }
 
     display_device_info();
@@ -123,8 +132,18 @@ void MainWindow::configure_gui() {
 
     gvs::add_three_line_separator();
 
+    auto timing_stream_str = timing_stream_.str();
+
+    if (!timing_stream_str.empty()) {
+        ImGui::TextUnformatted("TIMING");
+        ImGui::Text("%s", timing_stream_str.c_str());
+
+        gvs::add_three_line_separator();
+    }
+
     if (ImGui::Button("Load Mesh")) {
-        ltb::util::ScopedTimer timer("Obj Loading", std::cout);
+        util::ScopedTimer timer("Add Mesh to DVH", timing_stream_);
+        dvh_.add_volume(additive_mesh_);
     }
 
     gvs::add_three_line_separator();

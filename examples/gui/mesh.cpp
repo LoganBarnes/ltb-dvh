@@ -20,7 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-// project
-#include "register_geometry_type.hpp"
+#include "mesh.hpp"
 
-LTB_DVH_REGISTER_GEOMETRY_TYPE_3D(sdf::Triangle)
+namespace ltb {
+
+auto is_triangle_format(gvs::GeometryFormat const& format) -> bool {
+    return format == gvs::GeometryFormat::Triangles || format == gvs::GeometryFormat::TriangleFan
+        || format == gvs::GeometryFormat::TriangleStrip;
+}
+
+template <int L, typename T>
+auto Mesh<L, T>::append(Mesh<L, T> const& other) -> void {
+    std::transform(other.indices.begin(),
+                   other.indices.end(),
+                   std::back_inserter(indices),
+                   [add = vertices.size()](std::uint32_t index) { return index + add; });
+
+    vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+    normals.insert(normals.end(), other.normals.begin(), other.normals.end());
+    tex_coords.insert(tex_coords.end(), other.tex_coords.begin(), other.tex_coords.end());
+    colors.insert(colors.end(), other.colors.begin(), other.colors.end());
+}
+
+template struct Mesh<2, float>;
+template struct Mesh<3, float>;
+template struct Mesh<2, double>;
+template struct Mesh<3, double>;
+
+} // namespace ltb

@@ -35,38 +35,59 @@
 namespace ltb {
 namespace sdf {
 
-template <int L, typename T = float>
+template <typename T = float>
 struct Triangle {
-    glm::vec<L, T> p0;
-    glm::vec<L, T> p1;
-    glm::vec<L, T> p2;
+    glm::vec<3, T> p0;
+    glm::vec<3, T> p1;
+    glm::vec<3, T> p2;
 
     LTB_CUDA_FUNC Triangle() = default;
-    LTB_CUDA_FUNC Triangle(glm::vec<L, T> point0, glm::vec<L, T> point1, glm::vec<L, T> point2)
+    LTB_CUDA_FUNC Triangle(glm::vec<3, T> point0, glm::vec<3, T> point1, glm::vec<3, T> point2)
         : p0(point0), p1(point1), p2(point2) {}
 
-    LTB_CUDA_FUNC auto vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T>;
-    LTB_CUDA_FUNC auto distance_from(glm::vec<L, T> const& point) const -> T;
-    LTB_CUDA_FUNC auto bounding_box() const -> AABB<L, T>;
+    LTB_CUDA_FUNC auto vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T>;
+    LTB_CUDA_FUNC auto distance_from(glm::vec<3, T> const& point) const -> T;
+    LTB_CUDA_FUNC auto bounding_box() const -> AABB<3, T>;
 };
 
-template <int L, typename T = float>
-LTB_CUDA_FUNC auto make_triangle(glm::vec<L, T> p0, glm::vec<L, T> p1, glm::vec<L, T> p2) -> Triangle<L, T> {
-    return Triangle<L, T>{p0, p1, p2};
+template <typename T = float>
+LTB_CUDA_FUNC auto make_triangle(glm::vec<3, T> p0, glm::vec<3, T> p1, glm::vec<3, T> p2) -> Triangle<T> {
+    return {p0, p1, p2};
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto Triangle<L, T>::vector_from(glm::vec<L, T> const& point) const -> glm::vec<L, T> {
+template <typename T>
+LTB_CUDA_FUNC auto Triangle<T>::vector_from(glm::vec<3, T> const& point) const -> glm::vec<3, T> {
     return point;
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto Triangle<L, T>::distance_from(glm::vec<L, T> const& point) const -> T {
-    return glm::length(vector_from(point));
+template <typename T>
+LTB_CUDA_FUNC auto Triangle<T>::distance_from(glm::vec<3, T> const& point) const -> T {
+    auto dot2 = [](glm::vec<3, T> const& v) { return glm::dot(v, v); };
+
+    auto const& p = point;
+    auto const& a = p0;
+    auto const& b = p1;
+    auto const& c = p2;
+
+    auto ba  = b - a;
+    auto pa  = p - a;
+    auto cb  = c - b;
+    auto pb  = p - b;
+    auto ac  = a - c;
+    auto pc  = p - c;
+    auto nor = glm::cross(ba, ac);
+
+    return glm::sqrt((glm::sign(glm::dot(glm::cross(ba, nor), pa)) + glm::sign(glm::dot(glm::cross(cb, nor), pb))
+                          + glm::sign(glm::dot(glm::cross(ac, nor), pc))
+                      < T(2))
+                         ? glm::min(glm::min(dot2(ba * glm::clamp(glm::dot(ba, pa) / dot2(ba), T(0), T(1)) - pa),
+                                             dot2(cb * glm::clamp(glm::dot(cb, pb) / dot2(cb), T(0), T(1)) - pb)),
+                                    dot2(ac * glm::clamp(glm::dot(ac, pc) / dot2(ac), T(0), T(1)) - pc))
+                         : glm::dot(nor, pa) * glm::dot(nor, pa) / dot2(nor));
 }
 
-template <int L, typename T>
-LTB_CUDA_FUNC auto Triangle<L, T>::bounding_box() const -> AABB<L, T> {
+template <typename T>
+LTB_CUDA_FUNC auto Triangle<T>::bounding_box() const -> AABB<3, T> {
     return {glm::min(p0, glm::min(p1, p2)), glm::max(p0, glm::max(p1, p2))};
 }
 

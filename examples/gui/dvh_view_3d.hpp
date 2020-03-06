@@ -27,6 +27,7 @@
 #include "ltb/gvs/display/gui/error_alert_recorder.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
 #include "ltb/sdf/sdf.hpp"
+#include "mesh.hpp"
 #include "view.hpp"
 
 namespace ltb::example {
@@ -58,6 +59,7 @@ private:
     dvh::DistanceVolumeHierarchy<3> dvh_;
 
     // Additive Volumes
+    std::vector<sdf::OrientedTriangle<>>               additive_mesh_;
     std::vector<sdf::TransformedGeometry<sdf::Box, 3>> additive_boxes_;
 
     // Subtractive Volumes
