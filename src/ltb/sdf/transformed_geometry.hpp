@@ -63,6 +63,7 @@ LTB_CUDA_FUNC auto TransformedGeometry<G, L, T>::distance_from(glm::vec<L, T> co
 template <template <int, typename> class G, int L, typename T>
 LTB_CUDA_FUNC auto TransformedGeometry<G, L, T>::bounding_box() const -> AABB<L, T> {
     auto aabb = geometry.bounding_box();
+    // This is ok because the transform can only be a translation right now.
     return {from_geometry_space(aabb.min_point), from_geometry_space(aabb.max_point)};
 }
 

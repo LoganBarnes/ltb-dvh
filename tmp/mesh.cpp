@@ -20,47 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
-
-// project
-#include "dvh_renderable.hpp"
-#include "ltb/dvh/impl/distance_volume_hierarchy_gpu.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "ltb/gvs/display/local_scene.hpp"
 #include "mesh.hpp"
 
-namespace ltb::example {
+namespace ltb {
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
-public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+auto is_triangle_format(gvs::GeometryFormat const& format) -> bool {
+    return format == gvs::GeometryFormat::Triangles || format == gvs::GeometryFormat::TriangleFan
+        || format == gvs::GeometryFormat::TriangleStrip;
+}
 
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
+template <int L, typename T>
+auto Mesh<L, T>::append(Mesh<L, T> const& other) -> void {
+    std::transform(other.indices.begin(),
+                   other.indices.end(),
+                   std::back_inserter(indices),
+                   [add = vertices.size()](std::uint32_t index) { return index + add; });
 
-    void resize(const Magnum::Vector2i& viewport) override;
+    vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+    normals.insert(normals.end(), other.normals.begin(), other.normals.end());
+    tex_coords.insert(tex_coords.end(), other.tex_coords.begin(), other.tex_coords.end());
+    colors.insert(colors.end(), other.colors.begin(), other.colors.end());
+}
 
-    void handleKeyPressEvent(KeyEvent& event) override;
-    void handleKeyReleaseEvent(KeyEvent& event) override;
+template struct Mesh<2, float>;
+template struct Mesh<3, float>;
+template struct Mesh<2, double>;
+template struct Mesh<3, double>;
 
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    Mesh3 mesh_;
-
-    // Dvh
-    dvh::DistanceVolumeHierarchyGpu<3, float> dvh_;
-
-    // Visuals
-    DvhRenderable   dvh_renderable_;
-    gvs::LocalScene scene_;
-
-    bool paused = true;
-};
-
-} // namespace ltb::example
+} // namespace ltb

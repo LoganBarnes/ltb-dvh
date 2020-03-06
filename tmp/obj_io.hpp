@@ -23,44 +23,15 @@
 #pragma once
 
 // project
-#include "dvh_renderable.hpp"
-#include "ltb/dvh/impl/distance_volume_hierarchy_gpu.hpp"
-#include "ltb/gvs/display/gui/error_alert.hpp"
-#include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
-#include "ltb/gvs/display/local_scene.hpp"
 #include "mesh.hpp"
 
-namespace ltb::example {
+// standard
+#include <string>
 
-class MainWindow : public gvs::ImGuiMagnumApplication {
-public:
-    explicit MainWindow(const Arguments& arguments);
-    ~MainWindow() override;
+namespace ltb {
+namespace io {
 
-private:
-    void update() override;
-    void render(const gvs::CameraPackage& camera_package) const override;
-    void configure_gui() override;
+auto load_obj(std::string const& path) -> Mesh3;
 
-    void resize(const Magnum::Vector2i& viewport) override;
-
-    void handleKeyPressEvent(KeyEvent& event) override;
-    void handleKeyReleaseEvent(KeyEvent& event) override;
-
-    void handleMousePressEvent(MouseEvent& event) override;
-    void handleMouseReleaseEvent(MouseEvent& event) override;
-    void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    Mesh3 mesh_;
-
-    // Dvh
-    dvh::DistanceVolumeHierarchyGpu<3, float> dvh_;
-
-    // Visuals
-    DvhRenderable   dvh_renderable_;
-    gvs::LocalScene scene_;
-
-    bool paused = true;
-};
-
-} // namespace ltb::example
+} // namespace io
+} // namespace ltb

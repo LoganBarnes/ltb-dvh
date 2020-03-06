@@ -27,10 +27,12 @@
 #include "ltb/gvs/display/gui/error_alert.hpp"
 #include "ltb/gvs/display/gui/imgui_utils.hpp"
 #include "ltb/gvs/display/gui/scene_gui.hpp"
+#include "obj_io.hpp"
 
 // external
 #include <Magnum/GL/Context.h>
 #include <imgui.h>
+#include <ltb/util/timer.hpp>
 
 static void initialize_dvh_resources() {
     CORRADE_RESOURCE_INITIALIZE(ltb_dvh_display_RESOURCES)
@@ -47,6 +49,7 @@ MainWindow::MainWindow(const Arguments& arguments)
                                       .setTitle("Tmp Particle Test")
                                       .setSize({1600, 900})
                                       .setWindowFlags(Configuration::WindowFlag::Resizable)),
+      dvh_(0.1f),
       dvh_renderable_({this->windowSize().x(), this->windowSize().y()}) {
 
     initialize_dvh_resources();
@@ -66,6 +69,18 @@ MainWindow::MainWindow(const Arguments& arguments)
                                                5e4f));
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
+
+    {
+        ltb::util::ScopedTimer timer("Obj Loading", std::cout);
+        mesh_ = io::load_obj("~/Documents/projects/engine/cache/dvh/hard-part-low-res.obj");
+
+        scene_.add_item(gvs::SetReadableId("Mesh"),
+                        gvs::SetPositions3d(mesh_.vertices),
+                        gvs::SetIndices(mesh_.indices),
+                        gvs::SetGeometryFormat(mesh_.geometry_format),
+                        gvs::SetShading(gvs::Shading::Lambertian),
+                        gvs::SetColoring(gvs::Coloring::UniformColor));
+    }
 }
 
 MainWindow::~MainWindow() = default;
@@ -99,6 +114,12 @@ void MainWindow::configure_gui() {
     display_device_info();
 
     settings_.configure_gui();
+
+    gvs::add_three_line_separator();
+
+    if (ImGui::Button("Load Mesh")) {
+        ltb::util::ScopedTimer timer("Obj Loading", std::cout);
+    }
 
     gvs::add_three_line_separator();
 
