@@ -20,57 +20,45 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
-
-// project
-#include "ltb/util/generic_guard.hpp"
-
-// external
-#include <imgui.h>
-
-// standard
-#include <string>
+#include "imgui_colors.hpp"
 
 namespace ltb::gvs {
 
-struct Disable {
-    class Guard {
-    public:
-        explicit Guard(bool disable);
-        ~Guard();
-
-    private:
-        bool disable_;
-    };
-
-    static void disable_push();
-    static void disable_pop();
-};
-
-bool configure_gui(const std::string&          label,
-                   std::string*                data,
-                   ImGuiInputTextFlags_ const& flags = ImGuiInputTextFlags_None);
-
-class ScopedIndent {
-public:
-    explicit ScopedIndent(float indent_w = 0.f)
-        : guard_(util::make_guard(&ImGui::Indent, &ImGui::Unindent, indent_w)) {}
-
-private:
-    util::GenericGuard<decltype(&ImGui::Indent), decltype(&ImGui::Unindent), float&> guard_;
-};
-
-class ScopedID {
-public:
-    explicit ScopedID(const char* str_id);
-    explicit ScopedID(const char* str_id_begin, const char* str_id_end);
-    explicit ScopedID(const void* ptr_id);
-    explicit ScopedID(int int_id);
-    ~ScopedID();
-};
-
-auto display_fps_info() -> void;
-
-auto add_three_line_separator() -> void;
+auto red() -> ImVec4 {
+    return {1.f, 0.f, 0.f, 1.f};
+}
+auto green() -> ImVec4 {
+    return {0.f, 1.f, 0.f, 1.f};
+}
+auto blue() -> ImVec4 {
+    return {0.f, 0.f, 1.f, 1.f};
+}
+auto yellow() -> ImVec4 {
+    return {1.f, 1.f, 0.f, 1.f};
+}
+auto cyan() -> ImVec4 {
+    return {0.f, 1.f, 1.f, 1.f};
+}
+auto magenta() -> ImVec4 {
+    return {1.f, 0.f, 1.f, 1.f};
+}
+auto orange() -> ImVec4 {
+    return {1.f, 0.5f, 0.1f, 1.f};
+}
+auto black() -> ImVec4 {
+    return {0.f, 0.f, 0.f, 1.f};
+}
+auto white() -> ImVec4 {
+    return {1.f, 1.f, 1.f, 1.f};
+}
+auto gray() -> ImVec4 {
+    return {0.5f, 0.5f, 0.5f, 1.f};
+}
+auto dark_gray() -> ImVec4 {
+    return {0.35f, 0.35f, 0.35f, 1.f};
+}
+auto light_gray() -> ImVec4 {
+    return {0.75f, 0.75f, 0.75f, 1.f};
+}
 
 } // namespace ltb::gvs
