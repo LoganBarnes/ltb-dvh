@@ -22,55 +22,22 @@
 // ///////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// project
-#include "ltb/util/generic_guard.hpp"
-
 // external
 #include <imgui.h>
 
-// standard
-#include <string>
-
 namespace ltb::gvs {
 
-struct Disable {
-    class Guard {
-    public:
-        explicit Guard(bool disable);
-        ~Guard();
-
-    private:
-        bool disable_;
-    };
-
-    static void disable_push();
-    static void disable_pop();
-};
-
-bool configure_gui(const std::string&          label,
-                   std::string*                data,
-                   ImGuiInputTextFlags_ const& flags = ImGuiInputTextFlags_None);
-
-class ScopedIndent {
-public:
-    explicit ScopedIndent(float indent_w = 0.f)
-        : guard_(util::make_guard(&ImGui::Indent, &ImGui::Unindent, indent_w)) {}
-
-private:
-    util::GenericGuard<decltype(&ImGui::Indent), decltype(&ImGui::Unindent), float&> guard_;
-};
-
-class ScopedID {
-public:
-    explicit ScopedID(const char* str_id);
-    explicit ScopedID(const char* str_id_begin, const char* str_id_end);
-    explicit ScopedID(const void* ptr_id);
-    explicit ScopedID(int int_id);
-    ~ScopedID();
-};
-
-auto display_fps_info() -> void;
-
-auto add_three_line_separator() -> void;
+auto red() -> ImVec4;
+auto green() -> ImVec4;
+auto blue() -> ImVec4;
+auto yellow() -> ImVec4;
+auto cyan() -> ImVec4;
+auto magenta() -> ImVec4;
+auto orange() -> ImVec4;
+auto black() -> ImVec4;
+auto white() -> ImVec4;
+auto gray() -> ImVec4;
+auto dark_gray() -> ImVec4;
+auto light_gray() -> ImVec4;
 
 } // namespace ltb::gvs
