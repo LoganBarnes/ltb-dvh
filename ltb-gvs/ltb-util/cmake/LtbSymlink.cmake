@@ -33,6 +33,7 @@ function(ltb_symlink target)
         )
     else ()
         message(STATUS "Symbolic Links not supported on this OS")
+        return()
     endif ()
 
     if (NOT "${result}" STREQUAL "0")
