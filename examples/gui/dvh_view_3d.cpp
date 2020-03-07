@@ -245,6 +245,7 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
 
     scene_ = std::make_unique<gvs::LocalScene>();
 
+#if 0
     auto obj_file = ltb::paths::project_root() + "cache" + ltb::paths::slash() + "dvh" + ltb::paths::slash()
         + "freeform-lofted-low-res.obj";
 
@@ -261,6 +262,7 @@ DvhView3d::DvhView3d(gvs::ErrorAlertRecorder error_recorder)
                                                                     mesh.vertices.at(mesh.indices.at(i + 2))));
         }
     }
+#endif
 
     additive_mesh_ = {
         sdf::make_oriented_triangle<float>({0, 1, 0}, {0, 0, 1}, {1, 0, 0}),

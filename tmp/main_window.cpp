@@ -71,6 +71,7 @@ MainWindow::MainWindow(const Arguments& arguments)
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
 
+#if 0
     auto obj_file = ltb::paths::project_root() + "cache" + ltb::paths::slash() + "dvh" + ltb::paths::slash()
         + "freeform-lofted-low-res.obj";
 
@@ -98,6 +99,7 @@ MainWindow::MainWindow(const Arguments& arguments)
                     gvs::SetShading(gvs::Shading::UniformColor),
                     gvs::SetColoring(gvs::Coloring::UniformColor),
                     gvs::SetWireframeOnly(true));
+#endif
 }
 
 MainWindow::~MainWindow() = default;

@@ -29,8 +29,7 @@
 // standard
 #include <sstream>
 
-namespace ltb {
-namespace io {
+namespace ltb::io {
 namespace {
 
 // Unchecked code copied from elsewhere.
@@ -99,5 +98,4 @@ auto load_obj(std::string const& path) -> Mesh3 {
     return mesh;
 }
 
-} // namespace io
-} // namespace ltb
+} // namespace ltb::io
