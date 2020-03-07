@@ -29,7 +29,6 @@
 #include "ltb/gvs/display/gui/imgui_magnum_application.hpp"
 #include "ltb/gvs/display/local_scene.hpp"
 #include "ltb/sdf/sdf.hpp"
-#include "mesh.hpp"
 
 namespace ltb::example {
 
@@ -51,8 +50,6 @@ private:
     void handleMousePressEvent(MouseEvent& event) override;
     void handleMouseReleaseEvent(MouseEvent& event) override;
     void handleMouseMoveEvent(MouseMoveEvent& event) override;
-
-    Mesh3 mesh_;
 
     // DVH
     float                           base_resolution_ = 1.0f;
