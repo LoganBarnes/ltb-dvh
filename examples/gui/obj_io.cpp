@@ -33,7 +33,7 @@ namespace ltb::io {
 namespace {
 
 // Unchecked code copied from elsewhere.
-std::vector<std::string> split(const std::string& string, const std::string& token, bool ignore_empty = false) {
+auto split(const std::string& string, const std::string& token, bool ignore_empty = false) -> std::vector<std::string> {
     std::vector<std::string> tokens;
 
     size_t pos          = 0;

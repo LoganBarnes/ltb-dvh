@@ -92,7 +92,7 @@ auto get_modifiers(const std::string& modifiers_str) {
     return modifiers;
 }
 
-void* settings_read_open(ImGuiContext* /*ctx*/, ImGuiSettingsHandler* handler, const char* name) {
+auto settings_read_open(ImGuiContext* /*ctx*/, ImGuiSettingsHandler* handler, const char* name) -> void* {
     auto name_str = std::string(name);
 
     auto* settings = static_cast<Settings*>(handler->UserData);
@@ -173,7 +173,7 @@ Settings::Settings() {
     ini_handler_.UserData   = this;
 }
 
-ImGuiSettingsHandler Settings::handler() {
+auto Settings::handler() -> ImGuiSettingsHandler {
     return ini_handler_;
 }
 
