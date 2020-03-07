@@ -33,12 +33,18 @@
 #include <Magnum/GL/Context.h>
 #include <imgui.h>
 
+// standard
+#include <fstream>
+
 static void initialize_dvh_resources() {
+    // NOLINTNEXTLINE
     CORRADE_RESOURCE_INITIALIZE(ltb_dvh_display_RESOURCES)
 }
 
 using namespace Magnum;
 using namespace Magnum::Math::Literals;
+
+constexpr auto default_line_offset = 5.f;
 
 namespace ltb::example {
 
@@ -68,6 +74,33 @@ MainWindow::MainWindow(const Arguments& arguments)
                                                5e4f));
 
     scene_.add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
+
+    std::ifstream points_file(ltb::paths::project_root() + "cache" + ltb::paths::slash() + "dvh" + ltb::paths::slash()
+                              + "cube-points.txt");
+
+    std::vector<glm::vec3> points;
+
+    if (points_file.is_open()) {
+        while (points_file.good() && !points_file.eof()) {
+            points.emplace_back();
+            points_file >> points.back().x;
+            points_file >> points.back().y;
+            points_file >> points.back().z;
+        }
+    }
+
+    subtractive_lines_.resize(std::max(1ul, points.size()) - 1ul);
+
+    for (auto i = 1ul; i < points.size(); ++i) {
+        subtractive_lines_.emplace_back(points[i - 1ul], points[i - 0ul], default_line_offset);
+    }
+
+    scene_.add_item(gvs::SetReadableId("Subtractive Lines"),
+                    gvs::SetPositions3d(points),
+                    gvs::SetLineStrip(),
+                    gvs::SetColoring(gvs::Coloring::UniformColor),
+                    gvs::SetShading(gvs::Shading::UniformColor),
+                    gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
 }
 
 MainWindow::~MainWindow() = default;

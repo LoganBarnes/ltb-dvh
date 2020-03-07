@@ -47,7 +47,7 @@ struct Cell {
 };
 
 /**
- * The particle update and render logic.
+ * The DVH update and render logic.
  */
 class DvhRenderable {
 public:
@@ -66,7 +66,6 @@ private:
 
     std::unique_ptr<cuda::GLBuffer<Cell>> interop_cells_; ///< GPU buffer shared by OpenGL and the CUDA
 
-    // TODO: hook this stuff up
     glm::ivec2 viewport_;
     float      base_level_resolution_ = 0.1f;
     glm::vec3  camera_position_       = glm::vec3(0.f);

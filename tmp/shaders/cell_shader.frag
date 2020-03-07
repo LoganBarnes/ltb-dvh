@@ -59,7 +59,12 @@ uniform float ambient_scale   = 0.15f;
 
 layout(location = 0) out vec4 out_color;
 
+const float gaussian_scaling = 4.f;
+
 float guassian(in vec2 xy, in float omega) {
+    const float scaling = 1.f / 4.f;
+    float size = scaling * gaussian_scaling;
+    return ceil((size - length(xy)) / size);
     float two_omega_pow_2 = 2.f * omega * omega;
     float power = -dot(xy, xy) / two_omega_pow_2;
 
@@ -74,7 +79,7 @@ void main()
     //     discard; // kill pixels outside circle
     // }
 
-    vec2 gauss_space = point_space * 4.f;
+    vec2 gauss_space = point_space * gaussian_scaling;
 
     float max_guass = guassian(vec2(0.f, 0.f), 1.f);
     float opacity   = guassian(gauss_space, 1.f) / max_guass;

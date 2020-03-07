@@ -58,6 +58,9 @@ private:
     // Additive Volumes
     std::vector<sdf::OrientedTriangle<>> additive_mesh_;
 
+    // Subtractive Volumes
+    std::vector<sdf::OffsetLine<3>> subtractive_lines_;
+
     // Visuals
     DvhRenderable   dvh_renderable_;
     gvs::LocalScene scene_;
