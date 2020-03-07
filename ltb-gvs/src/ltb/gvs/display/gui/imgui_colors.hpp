@@ -25,7 +25,8 @@
 // external
 #include <imgui.h>
 
-namespace ltb::gvs {
+namespace ltb {
+namespace gvs {
 
 auto red() -> ImVec4;
 auto green() -> ImVec4;
@@ -40,4 +41,5 @@ auto gray() -> ImVec4;
 auto dark_gray() -> ImVec4;
 auto light_gray() -> ImVec4;
 
-} // namespace ltb::gvs
+} // namespace gvs
+} // namespace ltb

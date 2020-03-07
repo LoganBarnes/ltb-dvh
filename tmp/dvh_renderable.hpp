@@ -69,6 +69,9 @@ private:
     glm::ivec2 viewport_;
     float      base_level_resolution_ = 0.1f;
     glm::vec3  camera_position_       = glm::vec3(0.f);
+
+    // Gui
+    bool visible_ = true;
 };
 
 } // namespace example

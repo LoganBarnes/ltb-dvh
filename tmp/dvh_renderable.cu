@@ -24,6 +24,7 @@
 
 // project
 #include "buffer_map_guard.hpp"
+#include "ltb/gvs/display/gui/imgui_colors.hpp"
 
 // external
 #include <Magnum/GL/Renderer.h>
@@ -146,6 +147,10 @@ void DvhRenderable::update(double /*time_step*/) {
 }
 
 void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
+    if (!visible_) {
+        return;
+    }
+
     GL::Renderer::enable(GL::Renderer::Feature::Blending);
     GL::Renderer::setDepthMask(false);
 
@@ -170,7 +175,15 @@ void DvhRenderable::render(const gvs::CameraPackage& camera_package) const {
     GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
-void DvhRenderable::configure_gui() {}
+void DvhRenderable::configure_gui() {
+    ImGui::Checkbox("###dvh_visible", &visible_);
+
+    ImGui::SameLine();
+    if (ImGui::TreeNode("DVH")) {
+        ImGui::TextColored(gvs::gray(), "No settings");
+        ImGui::TreePop();
+    }
+}
 
 void DvhRenderable::resize(glm::ivec2 viewport) {
     viewport_ = viewport;
