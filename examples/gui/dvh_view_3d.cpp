@@ -41,13 +41,16 @@
 #include <sstream>
 #include <utility>
 
+//#define MESH_ONLY
+#define SHOW_BORDERS
+
 using namespace Magnum;
 using namespace Platform;
 
 namespace ltb::example {
 namespace {
 
-void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, float resolution) {
+[[maybe_unused]] void mesh_cell_border(std::vector<glm::vec3>* lines, glm::ivec3 const& cell, float resolution) {
 
     auto half_resolution = resolution * 0.5f;
 
@@ -321,23 +324,25 @@ void DvhView3d::reset_volumes() {
     dvh_ = dvh::DistanceVolumeHierarchy<3>{base_resolution_};
 
     std::stringstream ss;
-    //    {
-    //        util::ScopedTimer timer("Additive box time", ss);
-    //
-    //        for (auto const& box : additive_boxes_) {
-    //            dvh_.add_volume(decltype(additive_boxes_){box});
-    //        }
-    //    }
+#ifndef MESH_ONLY
+    {
+        util::ScopedTimer timer("Additive box time", ss);
 
+        for (auto const& box : additive_boxes_) {
+            dvh_.add_volume(decltype(additive_boxes_){box});
+        }
+    }
+#else
     {
         util::ScopedTimer timer("Additive mesh time", ss);
         dvh_.add_volume(additive_mesh_);
     }
+#endif
 
-    //    {
-    //        util::ScopedTimer timer("Subtractive computation time", ss);
-    //        dvh_.subtract_volumes(subtractive_lines_);
-    //    }
+    {
+        util::ScopedTimer timer("Subtractive computation time", ss);
+        dvh_.subtract_volumes(subtractive_lines_);
+    }
     computation_time_message_ = ss.str();
 }
 
@@ -348,22 +353,24 @@ void DvhView3d::reset_scene() {
     scene_->add_item(gvs::SetReadableId("Axes"), gvs::SetPrimitive(gvs::Axes{}));
     dvh_root_scene_id_ = scene_->add_item(gvs::SetReadableId("DVH"), gvs::SetPositions3d());
 
-    //    auto boxes_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
-    //    scene_->update_item(boxes_scene_id, gvs::SetReadableId("Additive Boxes"));
-
-    //    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
-    //    scene_->update_item(offset_lines_scene_id,
-    //                        gvs::SetReadableId("Subtractive Lines"),
-    //                        gvs::SetColoring(gvs::Coloring::UniformColor),
-    //                        gvs::SetShading(gvs::Shading::UniformColor),
-    //                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
-
+#ifndef MESH_ONLY
+    auto boxes_scene_id = add_boxes_to_scene(scene_.get(), additive_boxes_);
+    scene_->update_item(boxes_scene_id, gvs::SetReadableId("Additive Boxes"));
+#else
     auto mesh_scene_id = add_triangles_to_scene(scene_.get(), additive_mesh_);
     scene_->update_item(mesh_scene_id,
                         gvs::SetReadableId("Additive Mesh"),
                         gvs::SetShading(gvs::Shading::UniformColor),
                         gvs::SetColoring(gvs::Coloring::UniformColor),
                         gvs::SetWireframeOnly(true));
+#endif
+
+    auto offset_lines_scene_id = add_offset_lines_to_scene(scene_.get(), subtractive_lines_);
+    scene_->update_item(offset_lines_scene_id,
+                        gvs::SetReadableId("Subtractive Lines"),
+                        gvs::SetColoring(gvs::Coloring::UniformColor),
+                        gvs::SetShading(gvs::Shading::UniformColor),
+                        gvs::SetUniformColor({0.95f, 0.5f, 0.5f}));
 
     for (auto const& [level_index, sparse_distance_field] : dvh_.levels()) {
 
@@ -382,13 +389,16 @@ void DvhView3d::reset_scene() {
                              gvs::SetColoring(gvs::Coloring::VertexColors),
                              gvs::SetParent(level_scene_id));
 
+#ifdef SHOW_BORDERS
             scene_->add_item(gvs::SetReadableId("Cell Borders"),
                              gvs::SetPositions3d(),
                              gvs::SetLines(),
                              gvs::SetShading(gvs::Shading::UniformColor),
                              gvs::SetColoring(gvs::Coloring::UniformColor),
                              gvs::SetUniformColor({0.f, 0.f, 0.f}),
+                             gvs::SetVisible(false),
                              gvs::SetParent(level_scene_id));
+#endif
         }
 
         auto resolution = dvh_.resolution(level_index);
@@ -410,13 +420,14 @@ void DvhView3d::reset_scene() {
                             gvs::SetPositions3d(positions),
                             gvs::SetNormals3d(normals),
                             gvs::SetVertexColors3d(colors));
-
+#ifdef SHOW_BORDERS
         positions.clear();
         for (auto const& [cell, dir_and_dist] : sparse_distance_field) {
             util::ignore(dir_and_dist);
             mesh_cell_border(&positions, cell, resolution);
         }
         scene_->update_item(children[1], gvs::SetPositions3d(positions), gvs::SetLines());
+#endif
     }
 }
 
