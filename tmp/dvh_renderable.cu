@@ -49,7 +49,7 @@ namespace example {
 namespace {
 
 struct DistanceFromCameraComparator {
-    LTB_CUDA_FUNC bool operator()(const Cell& c1, const Cell& c2) {
+    LTB_CUDA_FUNC bool operator()(const Cell& c1, const Cell& c2) const {
         return glm::distance(camera_position, c1.center_point(level_0_resolution))
             > glm::distance(camera_position, c2.center_point(level_0_resolution));
     }
@@ -113,7 +113,7 @@ LTB_CUDA_FUNC auto Cell::center_point(float level_0_resolution) const -> glm::ve
     return glm::vec3(index) * level_0_resolution * glm::pow(2.f, static_cast<float>(level));
 }
 
-DvhRenderable::DvhRenderable(glm::ivec2 viewport) {
+DvhRenderable::DvhRenderable(glm::ivec2 viewport) : viewport_(viewport) {
     {
         auto cells     = create_cells();
         interop_cells_ = std::make_unique<cuda::GLBuffer<Cell>>(cells);
@@ -135,7 +135,7 @@ DvhRenderable::DvhRenderable(glm::ivec2 viewport) {
 void DvhRenderable::update(double /*time_step*/) {
     auto guard = cuda::make_gl_buffer_map_guard(*interop_cells_);
 
-    std::size_t buffer_size;
+    std::size_t buffer_size    = 0ul;
     auto*       raw_device_ptr = interop_cells_->cuda_buffer(&buffer_size);
 
     auto device_ptr = thrust::device_pointer_cast(raw_device_ptr);
@@ -175,6 +175,7 @@ void DvhRenderable::configure_gui() {}
 void DvhRenderable::resize(glm::ivec2 viewport) {
     viewport_ = viewport;
 }
+
 void DvhRenderable::set_camera_position(glm::vec3 cam_pos) {
     camera_position_ = cam_pos;
 }
