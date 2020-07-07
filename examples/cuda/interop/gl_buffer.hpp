@@ -26,6 +26,8 @@
 #include "ltb/cuda/cuda_check.hpp"
 
 // external
+#define CORRADE_NO_PYTHON_COMPATIBILITY
+#include <Corrade/Containers/ArrayView.h>
 #include <Corrade/Containers/ArrayViewStl.h>
 #include <Magnum/GL/Buffer.h>
 #include <cuda_gl_interop.h>

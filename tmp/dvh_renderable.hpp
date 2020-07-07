@@ -23,13 +23,13 @@
 #pragma once
 
 // project
-#include "Magnum/GL/Mesh.h"
 #include "gl_buffer.hpp"
 #include "ltb/cuda/cuda_func.hpp"
 #include "ltb/gvs/display/camera_package.hpp"
 #include "shaders/cell_shader.hpp"
 
 // external
+#include <Magnum/GL/Mesh.h>
 #include <glm/glm.hpp>
 
 // standard
